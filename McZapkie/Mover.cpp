@@ -7330,7 +7330,7 @@ void TMoverParameters::CheckEIMIC(double dt)
 		}
 	case 4: // vectron
 		// TARGET
-		eimtcp = (LocalBrakeRatio() > 0.01 ? -LocalBrakeRatio() : (eimic_analog > 0.01 ? eimic_analog : (double)MainCtrlPos / (double)MainCtrlPosNo));
+		eimtcp = LocalBrakeRatio() > 0.01 ? -LocalBrakeRatio() : eimic_analog > 0.01 ? eimic_analog : (double)MainCtrlPos / (double)MainCtrlPosNo;
 
 		if ((eimtcp > 0.001) && SpeedCtrlUnit.IsActive)
 			eimtcp = std::max(eimtcp, SpeedCtrlUnit.MinPower);
