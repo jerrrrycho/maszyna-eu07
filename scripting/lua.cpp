@@ -57,15 +57,15 @@ std::string lua::get_error() const
 void lua::interpret(const std::string& file) const
 {
 	if (luaL_dofile(state, file.c_str())) {
-		const char *str = lua_tostring(state, -1);
-		ErrorLog(std::string(str), logtype::lua);
+		std::string str = lua_tostring(state, -1);
+		ErrorLog("lua: Runtime error: " + str, logtype::lua);
 	}
 }
 
 int lua::atpanic(lua_State *s)
 {
-	std::string err = lua_tostring(s, 1);
-	ErrorLog(err, logtype::lua);
+	std::string err = lua_tostring(s, -1);
+	ErrorLog("lua: Runtime error: " + err, logtype::lua);
     return 0;
 }
 

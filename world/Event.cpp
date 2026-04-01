@@ -2141,7 +2141,7 @@ void lua_event::run_() {
 		if (lua_func != LUA_NOREF)
 			lua::dispatch_event(lua_state, lua_func, this, m_activator);
 	} catch (...) {
-		ErrorLog(simulation::Lua.get_error());
+		ErrorLog("lua: Runtime error: " + simulation::Lua.get_error());
 	}
 }
 
