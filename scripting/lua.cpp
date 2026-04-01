@@ -98,21 +98,24 @@ void lua::push_memcell_values(lua_State *L, const TMemCell *mc)
 	lua_settable(L, -3);
 }
 
-memcell_values lua::get_memcell_values(lua_State *L)
+memcell_values lua::get_memcell_values(lua_State *L, int idx)
 {
+	// For negative indices, we need to account for the extra item that is the key name/value extracted from the table.
+	if (idx < 0)
+		idx--;
 	memcell_values mc{nullptr, 0.0, 0.0};
 	lua_pushstring(L, "str");
-	lua_gettable(L, -2);
+	lua_gettable(L, idx);
 	if (lua_isstring(L, -1))
 		mc.str = lua_tostring(L, -1);
 	lua_pop(L, 1);
 	lua_pushstring(L, "num1");
-	lua_gettable(L, -2);
+	lua_gettable(L, idx);
 	if (lua_isnumber(L, -1))
 		mc.num1 = lua_tonumber(L, -1);
 	lua_pop(L, 1);
 	lua_pushstring(L, "num2");
-	lua_gettable(L, -2);
+	lua_gettable(L, idx);
 	if (lua_isnumber(L, -1))
 		mc.num2 = lua_tonumber(L, -1);
 	lua_pop(L, 1);
@@ -282,7 +285,7 @@ int lua::scriptapi_train_getname(lua_State *L)
 int lua::scriptapi_dynobj_putvalues(lua_State *L)
 {
 	auto *dyn = static_cast<TDynamicObject *>(lua_touserdata(L, 1));
-	auto [str, num1, num2] = get_memcell_values(L);
+	auto [str, num1, num2] = get_memcell_values(L, 2);
 	if (!dyn)
 		return 0;
 	TLocation loc{};
@@ -326,7 +329,7 @@ int lua::scriptapi_memcell_read_n(lua_State *L)
 int lua::scriptapi_memcell_update(lua_State *L)
 {
 	auto *mc = static_cast<TMemCell *>(lua_touserdata(L, 1));
-	auto [str, num1, num2] = get_memcell_values(L);
+	auto [str, num1, num2] = get_memcell_values(L, 2);
 	if (mc)
 		mc->UpdateValues(str, num1, num2,
 					 basic_event::flags::text | basic_event::flags::value1 | basic_event::flags::value2);
@@ -336,7 +339,7 @@ int lua::scriptapi_memcell_update(lua_State *L)
 int lua::scriptapi_memcell_update_n(lua_State *L)
 {
 	std::string mstr = lua_tostring(L, 1);
-	auto [str, num1, num2] = get_memcell_values(L);
+	auto [str, num1, num2] = get_memcell_values(L, 2);
 	TMemCell *mc = simulation::Memory.find(mstr);
 	if (mc)
 		mc->UpdateValues(str, num1, num2,

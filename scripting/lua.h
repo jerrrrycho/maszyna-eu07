@@ -45,5 +45,5 @@ public:
 	static void unref(lua_State *L, int ref);
 	static void dispatch_event(lua_State *L, int handler, basic_event *event, const TDynamicObject *activator);
 	static void push_memcell_values(lua_State *L, const TMemCell *mc);
-	static memcell_values get_memcell_values(lua_State *L);
+	static memcell_values get_memcell_values(lua_State *L, int idx);
 };
