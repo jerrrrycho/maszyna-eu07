@@ -98,6 +98,27 @@ void lua::push_memcell_values(lua_State *L, const TMemCell *mc)
 	lua_settable(L, -3);
 }
 
+memcell_values lua::get_memcell_values(lua_State *L)
+{
+	memcell_values mc{nullptr, 0.0, 0.0};
+	lua_pushstring(L, "str");
+	lua_gettable(L, -2);
+	if (lua_isstring(L, -1))
+		mc.str = lua_tostring(L, -1);
+	lua_pop(L, 1);
+	lua_pushstring(L, "num1");
+	lua_gettable(L, -2);
+	if (lua_isnumber(L, -1))
+		mc.num1 = lua_tonumber(L, -1);
+	lua_pop(L, 1);
+	lua_pushstring(L, "num2");
+	lua_gettable(L, -2);
+	if (lua_isnumber(L, -1))
+		mc.num2 = lua_tonumber(L, -1);
+	lua_pop(L, 1);
+	return mc;
+}
+
 int lua::scriptapi_event_create(lua_State *L)
 {
 	std::string name = lua_tostring(L, 1);
@@ -261,17 +282,14 @@ int lua::scriptapi_train_getname(lua_State *L)
 int lua::scriptapi_dynobj_putvalues(lua_State *L)
 {
 	auto *dyn = static_cast<TDynamicObject *>(lua_touserdata(L, 1));
-	auto *mc = static_cast<memcell_values *>(lua_touserdata(L, 2));
-	std::string str = mc->str;
-	double num1 = mc->num1;
-	double num2 = mc->num2;
+	auto [str, num1, num2] = get_memcell_values(L);
 	if (!dyn)
 		return 0;
 	TLocation loc{};
 	if (dyn->Mechanik)
-		dyn->Mechanik->PutCommand(std::string(str), num1, num2, loc);
+		dyn->Mechanik->PutCommand(str, num1, num2, loc);
 	else
-		dyn->MoverParameters->PutCommand(std::string(str), num1, num2, loc);
+		dyn->MoverParameters->PutCommand(str, num1, num2, loc);
 	return 0;
 }
 
