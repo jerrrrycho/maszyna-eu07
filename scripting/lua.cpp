@@ -326,9 +326,7 @@ int lua::scriptapi_memcell_read_n(lua_State *L)
 int lua::scriptapi_memcell_update(lua_State *L)
 {
 	auto *mc = static_cast<TMemCell *>(lua_touserdata(L, 1));
-	std::string str = lua_tostring(L, 2);
-	double num1 = lua_tonumber(L, 3);
-	double num2 = lua_tonumber(L, 4);
+	auto [str, num1, num2] = get_memcell_values(L);
 	if (mc)
 		mc->UpdateValues(str, num1, num2,
 					 basic_event::flags::text | basic_event::flags::value1 | basic_event::flags::value2);
@@ -338,15 +336,13 @@ int lua::scriptapi_memcell_update(lua_State *L)
 int lua::scriptapi_memcell_update_n(lua_State *L)
 {
 	std::string mstr = lua_tostring(L, 1);
-	std::string str = lua_tostring(L, 2);
-	double num1 = lua_tonumber(L, 3);
-	double num2 = lua_tonumber(L, 4);
+	auto [str, num1, num2] = get_memcell_values(L);
 	TMemCell *mc = simulation::Memory.find(mstr);
 	if (mc)
 		mc->UpdateValues(str, num1, num2,
 					 basic_event::flags::text | basic_event::flags::value1 | basic_event::flags::value2);
 	else
-		ErrorLog("lua: missing memcell: " + str);
+		ErrorLog("lua: missing memcell: " + mstr);
 	return 0;
 }
 
