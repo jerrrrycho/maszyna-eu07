@@ -4265,27 +4265,6 @@ bool TDynamicObject::Update(double dt, double dt1)
 		MoverParameters->InactiveCabPantsCheck = false;
 	}
 
-
-    if (MoverParameters->DerailReason > 0)
-    {
-        switch (MoverParameters->DerailReason)
-        {
-        case 1:
-            ErrorLog("Bad driving: " + asName + " derailed due to end of track");
-            break;
-        case 2:
-            ErrorLog("Bad driving: " + asName + " derailed due to too high speed");
-            break;
-        case 3:
-            ErrorLog("Bad dynamic: " + asName + " derailed due to track width");
-            break; // błąd w scenerii
-        case 4:
-            ErrorLog("Bad dynamic: " + asName + " derailed due to wrong track type");
-            break; // błąd w scenerii
-        }
-        MoverParameters->DerailReason = 0; //żeby tylko raz
-    }
-
     if( MoverParameters->LoadStatus ) {
         LoadUpdate(); // zmiana modelu ładunku
     }
