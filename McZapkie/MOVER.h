@@ -1056,7 +1056,7 @@ class TMoverParameters
 			bool is_warm{false}; // fluid is too hot
 			bool is_hot{false}; // fluid temperature crossed cooling threshold
 			bool is_flowing{false}; // fluid is being pushed through the circuit
-		} water, water_aux, oil;
+		} water, water_aux, oil, engine;
 		// output, state of affected devices
 		bool PA{false}; // malfunction flag
 		float rpmw{0.0}; // current main circuit fan revolutions
@@ -1077,6 +1077,9 @@ class TMoverParameters
 		float temperatura1{50.0};
 		float temperatura2{40.0};
 		float powerfactor{1.0}; // coefficient of heat generation for engines other than su45
+		// engine overheat threshold
+		float engine_max_temp{-1}; // maximum acceptable engine temperature, triggers overheat lamp when exceeded
+		bool engine_is_hot{false}; // engine temperature crossed cooling threshold
 	};
 
 	struct spring_brake
