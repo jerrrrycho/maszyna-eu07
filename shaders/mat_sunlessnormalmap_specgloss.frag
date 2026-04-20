@@ -36,59 +36,62 @@ uniform sampler2D specgloss;
 
 vec3 apply_lights_sunless(vec3 fragcolor, vec3 fragnormal, vec3 texturecolor, float reflectivity, float specularity, float shadowtone)
 {
-	vec3 basecolor = param[0].rgb;
+    vec3 basecolor = param[0].rgb;
+    fragcolor *= basecolor;
 
-	fragcolor *= basecolor;
+    vec3 emissioncolor = basecolor * emission;
 
-	vec3 emissioncolor = basecolor * emission;
-	vec3 envcolor = envmap_color(fragnormal);
+    vec3 view_dir = normalize(-f_pos.xyz);
+    float NdotV = max(dot(fragnormal, view_dir), 0.0);
+    vec3 F0 = mix(vec3(0.04), texturecolor, metalic);
+    vec3 fresnel = F0 + (1.0 - F0) * pow(1.0 - NdotV, 5.0);
 
-// yuv path
-	vec3 texturecoloryuv = rgb2yuv(texturecolor);
-	vec3 texturecolorfullv = yuv2rgb(vec3(0.2176, texturecoloryuv.gb));
-// hsl path
-//	vec3 texturecolorhsl = rgb2hsl(texturecolor);
-//	vec3 texturecolorfullv = hsl2rgb(vec3(texturecolorhsl.rg, 0.5));
+    const float MAX_REFLECTION_LOD = 8.0;
+    float env_roughness = 1.0 - clamp(glossiness / max(abs(param[1].w), 1.0), 0.0, 1.0);
+    vec3 envcolor = envmap_color_lod(fragnormal, env_roughness * MAX_REFLECTION_LOD);
 
-	vec3 envyuv = rgb2yuv(envcolor);
-	texturecolor = mix(texturecolor, texturecolorfullv, envyuv.r * reflectivity);
+    vec3 texturecoloryuv = rgb2yuv(texturecolor);
+    vec3 texturecolorfullv = yuv2rgb(vec3(0.2176, texturecoloryuv.gb));
+    vec3 envyuv = rgb2yuv(envcolor);
+    texturecolor = mix(texturecolor, texturecolorfullv, envyuv.r * reflectivity * fresnel.r);
 
-	if(lights_count == 0U) 
-		return (fragcolor + emissioncolor + envcolor * reflectivity) * texturecolor;
+    if (lights_count == 0U)
+        return (fragcolor + emissioncolor) * texturecolor
+             + envcolor * fresnel * reflectivity;
 
-	vec2 sunlight = calc_dir_light(lights[0], fragnormal);
+    vec2 sunlight = calc_dir_light(lights[0], fragnormal);
+    float diffuseamount = sunlight.x * param[1].x * lights[0].intensity;
 
-	float diffuseamount = (sunlight.x * param[1].x) * lights[0].intensity;
-	fragcolor += envcolor * reflectivity;
-	float specularamount = (sunlight.y * param[1].y * specularity) * lights[0].intensity;
+    float specularamount = sunlight.y * param[1].y * specularity * lights[0].intensity;
 
-	for (uint i = 1U; i < lights_count; i++)
-	{
-		light_s light = lights[i];
-		vec2 part = vec2(0.0);
+    for (uint i = 1U; i < lights_count; i++)
+    {
+        light_s light = lights[i];
+        vec2 part = calc_headlights(light, fragnormal);
+        fragcolor += light.color * (part.x * param[1].x + part.y * param[1].y) * light.intensity;
+    }
 
-//		if (light.type == LIGHT_SPOT)
-//			part = calc_spot_light(light, fragnormal);
-//		else if (light.type == LIGHT_POINT)
-//			part = calc_point_light(light, fragnormal);
-//		else if (light.type == LIGHT_DIR)
-//			part = calc_dir_light(light, fragnormal);
-//		else if (light.type == LIGHT_HEADLIGHTS)
-			part = calc_headlights(light, fragnormal);
+    if (shadowtone < 1.0)
+    {
+        float shadow = calc_shadow();
+        specularamount *= clamp(1.0 - shadow, 0.0, 1.0);
+        fragcolor = mix(fragcolor, fragcolor * shadowtone, clamp(diffuseamount * shadow, 0.0, 1.0));
+    }
 
-		fragcolor += light.color * (part.x * param[1].x + part.y * param[1].y) * light.intensity;
-	}
+    fragcolor += emissioncolor;
+    vec3 specularcolor = specularamount * lights[0].color;
 
-	if (shadowtone < 1.0)
-	{
-		float shadow = calc_shadow();
-		specularamount *= clamp(1.0 - shadow, 0.0, 1.0);
-		fragcolor = mix(fragcolor,  fragcolor * shadowtone,  clamp(diffuseamount * shadow + specularamount, 0.0, 1.0));
-	}
-	fragcolor += emissioncolor;
-	fragcolor *= texturecolor;
-	
-	return fragcolor;
+    // Env reflection separate from albedo multiply — same fix as apply_lights
+    vec3 env_reflection = envcolor * fresnel * reflectivity;
+
+    vec3 result = mix(
+        (fragcolor + specularcolor) * texturecolor,
+         fragcolor * texturecolor + specularcolor,
+        metalic);
+
+    result += mix(env_reflection, env_reflection * texturecolor, metalic);
+
+    return result;
 }
 
 void main()
@@ -110,7 +113,7 @@ void main()
 	float reflectivity = param[1].z * texture(normalmap, f_coord).a;
 	float specularity = texture(specgloss, f_coord).r;
 	glossiness = texture(specgloss, f_coord).g * abs(param[1].w);
-	float metalic = texture(specgloss, f_coord).b;
+	metalic = texture(specgloss, f_coord).b;
 	
 	fragcolor = apply_lights_sunless(fragcolor, fragnormal, tex_color.rgb, reflectivity, specularity, shadow_tone);
 	vec4 color = vec4(apply_fog(fragcolor), tex_color.a * alpha_mult);
