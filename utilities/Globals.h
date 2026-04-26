@@ -11,7 +11,6 @@ http://mozilla.org/MPL/2.0/.
 
 #include "utilities/Classes.h"
 #include "vehicle/Camera.h"
-#include "utilities/dumb3d.h"
 #include "utilities/Float3d.h"
 #include "rendering/light.h"
 #include "utilities/utilities.h"
@@ -46,8 +45,8 @@ struct global_settings {
     uint32_t random_seed = 0;
     TCamera pCamera; // parametry kamery
     TCamera pDebugCamera;
-    std::array<Math3D::vector3, 10> FreeCameraInit; // pozycje kamery
-    std::array<Math3D::vector3, 10> FreeCameraInitAngle;
+    std::array<glm::dvec3, 10> FreeCameraInit; // pozycje kamery
+    std::array<glm::dvec3, 10> FreeCameraInitAngle;
     int iCameraLast{ -1 };
     int iSlowMotion{ 0 }; // info o malym FPS: 0-OK, 1-wyłączyć multisampling, 3-promień 1.5km, 7-1km
     basic_light DayLight;
