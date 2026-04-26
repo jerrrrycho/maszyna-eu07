@@ -14,6 +14,8 @@ http://mozilla.org/MPL/2.0/.
 namespace Math3D
 {
 
+    glm::vec3 RotateY(glm::vec3 v, float angle);
+
 // Define this to have Math3D.cp generate a main which tests these classes
 //#define TEST_MATH3D
 

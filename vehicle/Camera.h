@@ -9,7 +9,6 @@ http://mozilla.org/MPL/2.0/.
 
 #pragma once
 
-#include "utilities/dumb3d.h"
 #include "input/command.h"
 #include "vehicle/DynObj.h"
 
@@ -18,7 +17,7 @@ http://mozilla.org/MPL/2.0/.
 class TCamera {
 
   public: // McZapkie: potrzebuje do kiwania na boki
-    void Init( Math3D::vector3 const &Location, Math3D::vector3 const &Angle, TDynamicObject *Owner );
+	void Init(glm::vec3 const &Location, glm::vec3 const &Angle, TDynamicObject *Owner);
     void Reset();
     void OnCursorMove(double const x, double const y);
     bool OnCommand( command_data const &Command );
@@ -26,14 +25,14 @@ class TCamera {
     bool SetMatrix(glm::dmat4 &Matrix);
     void RaLook();
 
-    Math3D::vector3 Angle; // pitch, yaw, roll
-    Math3D::vector3 Pos; // współrzędne obserwatora
-    Math3D::vector3 LookAt; // współrzędne punktu, na który ma patrzeć
-    Math3D::vector3 vUp;
-    Math3D::vector3 Velocity;
+    glm::dvec3 Angle; // pitch, yaw, roll
+	glm::dvec3 Pos; // współrzędne obserwatora
+	glm::vec3 LookAt; // współrzędne punktu, na który ma patrzeć
+	glm::vec3 vUp;
+	glm::dvec3 Velocity;
 
     TDynamicObject *m_owner { nullptr }; // TODO: change to const when shake calculations are part of vehicles update
-    Math3D::vector3 m_owneroffset {};
+	glm::vec3 m_owneroffset{};
 
 private:
     glm::dvec3 m_moverate;

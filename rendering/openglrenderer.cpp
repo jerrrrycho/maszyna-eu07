@@ -2277,7 +2277,7 @@ opengl_renderer::Render( scene::shape_node const &Shape, bool const Ignorerange 
             case rendermode::shadows:
             case rendermode::cabshadows: {
                 // 'camera' for the light pass is the light source, but we need to draw what the 'real' camera sees
-                distancesquared = Math3D::SquareMagnitude( ( data.area.center - Global.pCamera.Pos ) / Global.ZoomFactor ) / Global.fDistanceFactor;
+                distancesquared = Math3D::SquareMagnitude( ( data.area.center - Global.pCamera.Pos ) / (double)Global.ZoomFactor ) / Global.fDistanceFactor;
                 break;
             }
             case rendermode::reflections: {
@@ -3505,7 +3505,7 @@ opengl_renderer::Render_Alpha( TAnimModel *Instance ) {
     switch( m_renderpass.draw_mode ) {
         case rendermode::shadows: {
             // 'camera' for the light pass is the light source, but we need to draw what the 'real' camera sees
-            distancesquared = Math3D::SquareMagnitude( ( Instance->location() - Global.pCamera.Pos ) / Global.ZoomFactor ) / Global.fDistanceFactor;
+            distancesquared = Math3D::SquareMagnitude( ( Instance->location() - Global.pCamera.Pos ) / (double)Global.ZoomFactor ) / Global.fDistanceFactor;
             break;
         }
         default: {

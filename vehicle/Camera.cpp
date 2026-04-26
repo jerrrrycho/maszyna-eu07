@@ -20,7 +20,8 @@ http://mozilla.org/MPL/2.0/.
 
 //---------------------------------------------------------------------------
 
-void TCamera::Init( Math3D::vector3 const &NPos, Math3D::vector3 const &NAngle/*, TCameraType const NType*/, TDynamicObject *Owner ) {
+void TCamera::Init(glm::vec3 const &NPos, glm::vec3 const &NAngle /*, TCameraType const NType*/, TDynamicObject *Owner)
+{
 
     vUp = { 0, 1, 0 };
     Velocity = { 0, 0, 0 };
@@ -170,7 +171,7 @@ void TCamera::Update()
      || ( true == DebugCameraFlag ) ) {
         // free movement position update
         auto movement { Velocity };
-        movement.RotateY( Angle.y );
+		movement = Math3D::RotateY(movement, Angle.y);
         Pos += movement * 5.0 * deltatime;
     }
     else {
@@ -193,7 +194,7 @@ void TCamera::Update()
             movement.y = -movement.y;
         }
 */
-        movement.RotateY( Angle.y );
+		movement = Math3D::RotateY(movement, Angle.y);
 
         m_owneroffset += movement * deltatime;
     }
@@ -221,7 +222,7 @@ bool TCamera::SetMatrix( glm::dmat4 &Matrix ) {
 
 void TCamera::RaLook()
 { // zmiana kierunku patrzenia - przelicza Yaw
-    Math3D::vector3 where = LookAt - Pos /*+ Math3D::vector3(0, 3, 0)*/; // trochę w górę od szyn
+    Math3D::vector3 where = glm::dvec3(LookAt )- Pos /*+ Math3D::vector3(0, 3, 0)*/; // trochę w górę od szyn
     if( ( where.x != 0.0 ) || ( where.z != 0.0 ) ) {
         Angle.y = atan2( -where.x, -where.z ); // kąt horyzontalny
         m_rotationoffsets.y = 0.0;

@@ -378,7 +378,7 @@ openal_renderer::update( double const Deltatime ) {
     // orientation
     glm::dmat4 cameramatrix;
     Global.pCamera.SetMatrix( cameramatrix );
-    auto cameraposition = Global.pCamera.Pos + (Global.viewport_move * glm::mat3(cameramatrix));
+    auto cameraposition = Global.pCamera.Pos + glm::dvec3((Global.viewport_move * glm::mat3(cameramatrix)));
     cameramatrix = glm::dmat4(glm::inverse(Global.viewport_rotate)) * cameramatrix;
     auto rotationmatrix { glm::mat3{ cameramatrix } };
     glm::vec3 const orientation[] = {
