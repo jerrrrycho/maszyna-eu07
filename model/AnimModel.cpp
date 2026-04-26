@@ -96,14 +96,14 @@ void TAnimContainer::UpdateModel() {
         if (fTranslateSpeed != 0.0)
         {
             auto dif = vTranslateTo - vTranslation; // wektor w kierunku docelowym
-			double  l = glm::length(dif); // długość wektora potrzebnego przemieszczenia
-            if (l >= 0.0001)
+			double l2 = glm::dot(dif, dif); // długość wektora potrzebnego przemieszczenia
+            if (l2 >= 0.0001)
             { // jeśli do przemieszczenia jest ponad 1cm
 				auto s = glm::normalize(dif); // jednostkowy wektor kierunku // Długość wektora nie jest równa 0, sprawdzane wcześniej więc wektor normalny będzie zawsze prawidłowy.
                 s = s *
                     (fTranslateSpeed *
                      Timer::GetDeltaTime()); // przemieszczenie w podanym czasie z daną prędkością
-                if (glm::length(s) < l) //żeby nie jechało na drugą stronę
+                if (glm::dot(s, s) < l2) //żeby nie jechało na drugą stronę
                     vTranslation += s;
                 else
                     vTranslation = vTranslateTo; // koniec animacji, "koniec animowania" uruchomi
@@ -113,7 +113,7 @@ void TAnimContainer::UpdateModel() {
             { // koniec animowania
                 vTranslation = vTranslateTo;
                 fTranslateSpeed = 0.0; // wyłączenie przeliczania wektora
-                if (glm::length(vTranslation) <= 0.0001) // jeśli jest w punkcie początkowym
+				if (glm::dot(vTranslation, vTranslation) <= 0.0001) // jeśli jest w punkcie początkowym
                     iAnim &= ~2; // wyłączyć zmianę pozycji submodelu
                 if( evDone ) {
                     // wykonanie eventu informującego o zakończeniu
