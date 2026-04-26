@@ -29,11 +29,11 @@ std::list<std::weak_ptr<TAnimContainer>> TAnimModel::acAnimList;
 
 TAnimContainer::TAnimContainer()
 {
-    vRotateAngles = Math3D::vector3(0.0f, 0.0f, 0.0f); // aktualne kąty obrotu
-    vDesiredAngles = Math3D::vector3(0.0f, 0.0f, 0.0f); // docelowe kąty obrotu
+	vRotateAngles = glm::dvec3(0.0f, 0.0f, 0.0f); // aktualne kąty obrotu
+	vDesiredAngles = glm::dvec3(0.0f, 0.0f, 0.0f); // docelowe kąty obrotu
     fRotateSpeed = 0.0;
-    vTranslation = Math3D::vector3(0.0f, 0.0f, 0.0f); // aktualne przesunięcie
-    vTranslateTo = Math3D::vector3(0.0f, 0.0f, 0.0f); // docelowe przesunięcie
+	vTranslation = glm::dvec3(0.0f, 0.0f, 0.0f); // aktualne przesunięcie
+    vTranslateTo = glm::dvec3(0.0f, 0.0f, 0.0f); // docelowe przesunięcie
     fTranslateSpeed = 0.0;
     fAngleSpeed = 0.0;
     pSubModel = NULL;
@@ -48,7 +48,7 @@ bool TAnimContainer::Init(TSubModel *pNewSubModel)
     return (pSubModel != NULL);
 }
 
-void TAnimContainer::SetRotateAnim( Math3D::vector3 vNewRotateAngles, double fNewRotateSpeed)
+void TAnimContainer::SetRotateAnim(glm::dvec3 vNewRotateAngles, double fNewRotateSpeed)
 {
     vDesiredAngles = vNewRotateAngles;
     fRotateSpeed = fNewRotateSpeed;
@@ -68,7 +68,7 @@ void TAnimContainer::SetRotateAnim( Math3D::vector3 vNewRotateAngles, double fNe
     }
 }
 
-void TAnimContainer::SetTranslateAnim( Math3D::vector3 vNewTranslate, double fNewSpeed)
+void TAnimContainer::SetTranslateAnim(glm::dvec3 vNewTranslate, double fNewSpeed)
 {
     vTranslateTo = vNewTranslate;
     fTranslateSpeed = fNewSpeed;
@@ -96,14 +96,14 @@ void TAnimContainer::UpdateModel() {
         if (fTranslateSpeed != 0.0)
         {
             auto dif = vTranslateTo - vTranslation; // wektor w kierunku docelowym
-            double l = LengthSquared3(dif); // długość wektora potrzebnego przemieszczenia
+			double  l = glm::length(dif); // długość wektora potrzebnego przemieszczenia
             if (l >= 0.0001)
             { // jeśli do przemieszczenia jest ponad 1cm
-                auto s = Math3D::SafeNormalize(dif); // jednostkowy wektor kierunku
+				auto s = glm::normalize(dif); // jednostkowy wektor kierunku // Długość wektora nie jest równa 0, sprawdzane wcześniej więc wektor normalny będzie zawsze prawidłowy.
                 s = s *
                     (fTranslateSpeed *
                      Timer::GetDeltaTime()); // przemieszczenie w podanym czasie z daną prędkością
-                if (LengthSquared3(s) < l) //żeby nie jechało na drugą stronę
+                if (glm::length(s) < l) //żeby nie jechało na drugą stronę
                     vTranslation += s;
                 else
                     vTranslation = vTranslateTo; // koniec animacji, "koniec animowania" uruchomi
@@ -113,7 +113,7 @@ void TAnimContainer::UpdateModel() {
             { // koniec animowania
                 vTranslation = vTranslateTo;
                 fTranslateSpeed = 0.0; // wyłączenie przeliczania wektora
-                if (LengthSquared3(vTranslation) <= 0.0001) // jeśli jest w punkcie początkowym
+                if (glm::length(vTranslation) <= 0.0001) // jeśli jest w punkcie początkowym
                     iAnim &= ~2; // wyłączyć zmianę pozycji submodelu
                 if( evDone ) {
                     // wykonanie eventu informującego o zakończeniu
