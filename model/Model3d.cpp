@@ -1043,7 +1043,7 @@ void TSubModel::SetRotateXYZ(float3 vNewAngles)
 	iAnimOwner = iInstance; // zapamiętanie czyja jest animacja
 }
 
-void TSubModel::SetRotateXYZ(Math3D::vector3 vNewAngles)
+void TSubModel::SetRotateXYZ(glm::vec3 vNewAngles)
 { // obrócenie submodelu o
   // podane kąty wokół osi
   // lokalnego układu
@@ -1063,7 +1063,7 @@ void TSubModel::SetTranslate(float3 vNewTransVector)
 	iAnimOwner = iInstance; // zapamiętanie czyja jest animacja
 }
 
-void TSubModel::SetTranslate(Math3D::vector3 vNewTransVector)
+void TSubModel::SetTranslate(glm::vec3 vNewTransVector)
 { // przesunięcie submodelu (np. w kabinie)
 	v_TransVector.x = vNewTransVector.x;
 	v_TransVector.y = vNewTransVector.y;
@@ -1178,8 +1178,7 @@ void TSubModel::RaAnimation(glm::mat4 &m, TAnimType a)
 		break;
 	case TAnimType::at_Billboard: // obrót w pionie do kamery
 	{
-		Math3D::matrix4x4 mat;
-		mat.OpenGL_Matrix(OpenGLMatrices.data_array(GL_MODELVIEW));
+		glm::mat4 mat = glm::make_mat4(OpenGLMatrices.data_array(GL_MODELVIEW));
 		float3 gdzie = float3(mat[3][0], mat[3][1], mat[3][2]); // początek układu współrzędnych submodelu względem kamery
 		m = glm::mat4(1.0f);
 		m = glm::translate(m, glm::vec3(gdzie.x, gdzie.y, gdzie.z)); // początek układu zostaje bez zmian
