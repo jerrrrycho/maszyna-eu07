@@ -512,7 +512,7 @@ void editor_mode::enter()
         {
             auto const cab = (vehicle->MoverParameters->CabOccupied == 0 ? 1 : vehicle->MoverParameters->CabOccupied);
             auto const left = vehicle->VectorLeft() * cab;
-            Camera.Pos = Math3D::vector3(Camera.Pos.x, vehicle->GetPosition().y, Camera.Pos.z) + left * vehicle->GetWidth() + Math3D::vector3(1.25f * left.x, 1.6f, 1.25f * left.z);
+            Camera.Pos = glm::vec3(Camera.Pos.x, vehicle->GetPosition().y, Camera.Pos.z) + left * vehicle->GetWidth() + glm::vec3(1.25f * left.x, 1.6f, 1.25f * left.z);
             Camera.m_owner = nullptr;
             Camera.LookAt = vehicle->GetPosition();
             Camera.RaLook(); // single camera reposition
