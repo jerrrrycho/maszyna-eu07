@@ -719,11 +719,11 @@ void driver_mode::update_camera(double const Deltatime)
 				Camera.Angle.y = simulation::Train->pMechViewAngle.y;
 			}
 
-			auto const shakescale{FreeFlyModeFlag ? 5.0 : 1.0};
+			float const shakescale{FreeFlyModeFlag ? 5.0f : 1.0f};
 			auto shakencamerapos{Camera.m_owneroffset +
-			                     shakescale * Math3D::vector3(1.5 * Camera.m_owner->ShakeState.offset.x, 2.0 * Camera.m_owner->ShakeState.offset.y, 1.5 * Camera.m_owner->ShakeState.offset.z)};
+			                     shakescale * glm::vec3(1.5 * Camera.m_owner->ShakeState.offset.x, 2.0 * Camera.m_owner->ShakeState.offset.y, 1.5 * Camera.m_owner->ShakeState.offset.z)};
 
-			Camera.Pos = (Camera.m_owner->GetWorldPosition(FreeFlyModeFlag ? shakencamerapos : // TODO: vehicle collision box for the external vehicle camera
+			Camera.Pos = (Camera.m_owner->GetWorldPosition(FreeFlyModeFlag ? Math3D::vector3(shakencamerapos) : // TODO: vehicle collision box for the external vehicle camera
 			                                                                 simulation::Train->clamp_inside(shakencamerapos)));
 
 			if (!Global.iPause)
@@ -1058,12 +1058,12 @@ void driver_mode::DistantView(bool const Near)
 	if (true == Near)
 	{
 
-		Camera.Pos = Math3D::vector3(Camera.Pos.x, vehicle->GetPosition().y, Camera.Pos.z) + left * vehicle->GetWidth() + Math3D::vector3(1.25 * left.x, 1.6, 1.25 * left.z);
+		Camera.Pos = glm::vec3(Camera.Pos.x, vehicle->GetPosition().y, Camera.Pos.z) + left * vehicle->GetWidth() + glm::vec3(1.25 * left.x, 1.6, 1.25 * left.z);
 	}
 	else
 	{
 
-		Camera.Pos = vehicle->GetPosition() + vehicle->VectorFront() * vehicle->MoverParameters->CabOccupied * 50.0 + Math3D::vector3(-10.0 * left.x, 1.6, -10.0 * left.z);
+		Camera.Pos = vehicle->GetPosition() + vehicle->VectorFront() * vehicle->MoverParameters->CabOccupied * 50.0 + glm::vec3(-10.0 * left.x, 1.6, -10.0 * left.z);
 	}
 
 	Camera.m_owner = nullptr;

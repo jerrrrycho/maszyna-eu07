@@ -60,8 +60,8 @@ private:
 
     struct view_config {
         TDynamicObject const *owner { nullptr };
-        Math3D::vector3 offset {};
-        Math3D::vector3 angle {};
+        glm::vec3 offset {};
+        glm::vec3 angle {};
     };
 
     struct drivermode_input {
