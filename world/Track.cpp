@@ -23,7 +23,6 @@ http://mozilla.org/MPL/2.0/.
 #include "vehicle/DynObj.h"
 #include "vehicle/Driver.h"
 #include "model/AnimModel.h"
-#include "world/Track.h"
 #include "utilities/Timer.h"
 #include "utilities/Logs.h"
 #include "rendering/renderer.h"
@@ -218,7 +217,7 @@ TTrack * TTrack::Create400m(int what, double dx)
     trk->m_visible = false; // nie potrzeba pokazywać, zresztą i tak nie ma tekstur
     trk->iCategoryFlag = what; // taki sam typ plus informacja, że dodatkowy
     trk->Init(); // utworzenie segmentu
-    trk->Segment->Init( Math3D::vector3( -dx, 0, 0 ), Math3D::vector3( -dx, 0, 400 ), 10.0, 0, 0 ); // prosty
+	trk->Segment->Init(glm::dvec3(-dx, 0, 0), glm::dvec3(-dx, 0, 400), 10.0, 0, 0); // prosty
     trk->location( glm::dvec3{ -dx, 0, 200 } ); //środek, aby się mogło wyświetlić
     simulation::Paths.insert( trk );
     simulation::Region->insert( trk );
@@ -237,7 +236,7 @@ TTrack * TTrack::NullCreate(int dir)
     trk->iCategoryFlag = (iCategoryFlag & 15) | 0x80; // taki sam typ plus informacja, że dodatkowy
     float r1, r2;
     Segment->GetRolls(r1, r2); // pobranie przechyłek na początku toru
-    Math3D::vector3 p1, cv1, cv2, p2; // będziem tworzyć trajektorię lotu
+	glm::dvec3 p1, cv1, cv2, p2; // będziem tworzyć trajektorię lotu
     if (iCategoryFlag & 1)
     { // tylko dla kolei
         trk->iDamageFlag = 128; // wykolejenie
@@ -247,21 +246,21 @@ TTrack * TTrack::NullCreate(int dir)
         { //łączenie z nowym torem
         case 0:
             p1 = Segment->FastGetPoint_0();
-            p2 = p1 - 450.0 * Normalize(Segment->GetDirection1());
+			p2 = p1 - 450.0 * glm::normalize(Segment->GetDirection1());
             // bo prosty, kontrolne wyliczane przy zmiennej przechyłce
             trk->Segment->Init(p1, p2, 5, -RadToDeg(r1), 70.0);
             ConnectPrevPrev(trk, 0);
             break;
         case 1:
             p1 = Segment->FastGetPoint_1();
-            p2 = p1 - 450.0 * Normalize(Segment->GetDirection2());
+            p2 = p1 - 450.0 * glm::normalize(Segment->GetDirection2());
             // bo prosty, kontrolne wyliczane przy zmiennej przechyłce
             trk->Segment->Init(p1, p2, 5, RadToDeg(r2), 70.0);
             ConnectNextPrev(trk, 0);
             break;
         case 3: // na razie nie możliwe
             p1 = SwitchExtension->Segments[1]->FastGetPoint_1(); // koniec toru drugiego zwrotnicy
-            p2 = p1 - 450.0 * Normalize( SwitchExtension->Segments[1]->GetDirection2()); // przedłużenie na wprost
+			p2 = p1 - 450.0 * glm::normalize(SwitchExtension->Segments[1]->GetDirection2()); // przedłużenie na wprost
             trk->Segment->Init(p1, p2, 5, RadToDeg(r2), 70.0); // bo prosty, kontrolne wyliczane przy zmiennej przechyłce
             ConnectNextPrev(trk, 0);
             // trk->ConnectPrevNext(trk,dir);
@@ -288,24 +287,24 @@ TTrack * TTrack::NullCreate(int dir)
         { //łączenie z nowym torem
         case 0:
             p1 = Segment->FastGetPoint_0();
-            cv1 = -20.0 * Normalize(Segment->GetDirection1()); // pierwszy wektor kontrolny
+            cv1 = -20.0 * glm::normalize(Segment->GetDirection1()); // pierwszy wektor kontrolny
             p2 = p1 + cv1 + cv1; // 40m
             // bo prosty, kontrolne wyliczane przy zmiennej przechyłce
-            trk->Segment->Init(p1, p1 + cv1, p2 + Math3D::vector3(-cv1.z, cv1.y, cv1.x), p2, 2, -RadToDeg(r1), 0.0);
+			trk->Segment->Init(p1, p1 + cv1, p2 + glm::dvec3(-cv1.z, cv1.y, cv1.x), p2, 2, -RadToDeg(r1), 0.0);
             ConnectPrevPrev(trk, 0);
             // bo prosty, kontrolne wyliczane przy zmiennej przechyłce
-            trk2->Segment->Init(p1, p1 + cv1, p2 + Math3D::vector3(cv1.z, cv1.y, -cv1.x), p2, 2, -RadToDeg(r1), 0.0);
+			trk2->Segment->Init(p1, p1 + cv1, p2 + glm::dvec3(cv1.z, cv1.y, -cv1.x), p2, 2, -RadToDeg(r1), 0.0);
             trk2->iPrevDirection = 0; // zwrotnie do tego samego odcinka
             break;
         case 1:
             p1 = Segment->FastGetPoint_1();
-            cv1 = -20.0 * Normalize(Segment->GetDirection2()); // pierwszy wektor kontrolny
+            cv1 = -20.0 * glm::normalize(Segment->GetDirection2()); // pierwszy wektor kontrolny
             p2 = p1 + cv1 + cv1;
             // bo prosty, kontrolne wyliczane przy zmiennej przechyłce
-            trk->Segment->Init(p1, p1 + cv1, p2 + Math3D::vector3(-cv1.z, cv1.y, cv1.x), p2, 2, RadToDeg(r2), 0.0);
+			trk->Segment->Init(p1, p1 + cv1, p2 + glm::dvec3(-cv1.z, cv1.y, cv1.x), p2, 2, RadToDeg(r2), 0.0);
             ConnectNextPrev(trk, 0);
             // bo prosty, kontrolne wyliczane przy zmiennej przechyłce
-            trk2->Segment->Init(p1, p1 + cv1, p2 + Math3D::vector3(cv1.z, cv1.y, -cv1.x), p2, 2, RadToDeg(r2), 0.0);
+			trk2->Segment->Init(p1, p1 + cv1, p2 + glm::dvec3(cv1.z, cv1.y, -cv1.x), p2, 2, RadToDeg(r2), 0.0);
             trk2->iPrevDirection = 1; // zwrotnie do tego samego odcinka
             break;
         }
@@ -387,7 +386,7 @@ void TTrack::ConnectNextNext(TTrack *pTrack, int typ)
 
 void TTrack::Load(cParser *parser, glm::dvec3 const &pOrigin)
 { // pobranie obiektu trajektorii ruchu
-    Math3D::vector3 pt, vec, p1, p2, cp1, cp2, p3, p4, cp3, cp4; // dodatkowe punkty potrzebne do skrzyżowań
+	glm::dvec3 pt, vec, p1, p2, cp1, cp2, p3, p4, cp3, cp4; // dodatkowe punkty potrzebne do skrzyżowań
 	double a1, a2, r1, r2, r3, r4;
     std::string str;
     size_t i; //,state; //Ra: teraz już nie ma początkowego stanu zwrotnicy we wpisie
@@ -560,10 +559,10 @@ void TTrack::Load(cParser *parser, glm::dvec3 const &pOrigin)
             // na przechyłce doliczyć jeszcze pół przechyłki
         }
 
-        if( ( ( ( p1 + p1 + p2 ) / 3.0 - p1 - cp1 ).Length() < 0.02 )
-         || ( ( ( p1 + p2 + p2 ) / 3.0 - p2 + cp1 ).Length() < 0.02 ) ) {
+        if( (glm::length(( p1 + p1 + p2 ) / 3.0 - p1 - cp1) < 0.02 )
+         || ( glm::length(( p1 + p2 + p2 ) / 3.0 - p2 + cp1) < 0.02 ) ) {
             // "prostowanie" prostych z kontrolnymi, dokładność 2cm
-            cp1 = cp2 = Math3D::vector3( 0, 0, 0 );
+			cp1 = cp2 = glm::dvec3(0, 0, 0);
         }
 
         if( fRadius != 0 ) {
@@ -576,22 +575,22 @@ void TTrack::Load(cParser *parser, glm::dvec3 const &pOrigin)
         }
         else {
             // HACK: crude check whether claimed straight is an actual straight piece
-            if( ( cp1 == Math3D::vector3() )
-             && ( cp2 == Math3D::vector3() ) ) {
+			if ((cp1 == glm::dvec3()) && (cp2 == glm::dvec3()))
+			{
                 segsize = 10.0; // for straights, 10m per segment works good enough
             }
             else {
                 // HACK: divide roughly in 10 segments. 
                 segsize =
                     clamp(
-                        ( p1 - p2 ).Length() * 0.1,
+                        glm::length( p1 - p2 ) * 0.1,
                         2.0 / Global.SplineFidelity,
                         10.0 / Global.SplineFidelity );
             }
         }
 
-        if( ( cp1 == Math3D::vector3( 0, 0, 0 ) )
-         && ( cp2 == Math3D::vector3( 0, 0, 0 ) ) ) {
+        if ((cp1 == glm::dvec3()) && (cp2 == glm::dvec3()))
+		{
             // Ra: hm, czasem dla prostego są podane...
             // gdy prosty, kontrolne wyliczane przy zmiennej przechyłce
             Segment->Init( p1, p2, segsize, r1, r2 );
@@ -656,10 +655,10 @@ void TTrack::Load(cParser *parser, glm::dvec3 const &pOrigin)
 
         if( eType != tt_Cross ) {
             // dla skrzyżowań muszą być podane kontrolne
-            if( ( ( ( p1 + p1 + p2 ) / 3.0 - p1 - cp1 ).Length() < 0.02 )
-             || ( ( ( p1 + p2 + p2 ) / 3.0 - p2 + cp1 ).Length() < 0.02 ) ) {
+            if( ( glm::length(( p1 + p1 + p2 ) / 3.0 - p1 - cp1 ) < 0.02 )
+             || ( glm::length(( p1 + p2 + p2 ) / 3.0 - p2 + cp1 ) < 0.02 ) ) {
                 // "prostowanie" prostych z kontrolnymi, dokładność 2cm
-                cp1 = cp2 = Math3D::vector3( 0, 0, 0 );
+				cp1 = cp2 = glm::dvec3(0, 0, 0);
             }
         }
 
@@ -673,22 +672,22 @@ void TTrack::Load(cParser *parser, glm::dvec3 const &pOrigin)
         }
         else {
             // HACK: crude check whether claimed straight is an actual straight piece
-            if( ( cp1 == Math3D::vector3() )
-             && ( cp2 == Math3D::vector3() ) ) {
+			if ((cp1 == glm::dvec3()) && (cp2 == glm::dvec3()))
+			{
                 segsize = 10.0; // for straights, 10m per segment works good enough
             }
             else {
                 // HACK: divide roughly in 10 segments. 
                 segsize =
                     clamp(
-                        ( p1 - p2 ).Length() * 0.1,
+                        glm::length( p1 - p2 ) * 0.1,
                         2.0 / Global.SplineFidelity,
                         10.0 / Global.SplineFidelity );
             }
         }
 
-        if( ( cp1 == Math3D::vector3( 0, 0, 0 ) )
-         && ( cp2 == Math3D::vector3( 0, 0, 0 ) ) ) {
+        if ((cp1 == glm::dvec3()) && (cp2 == glm::dvec3()))
+		{
             // Ra: hm, czasem dla prostego są podane...
             // gdy prosty, kontrolne wyliczane przy zmiennej przechyłce
             SwitchExtension->Segments[ 0 ]->Init( p1, p2, segsize, r1, r2 );
@@ -720,10 +719,10 @@ void TTrack::Load(cParser *parser, glm::dvec3 const &pOrigin)
 
         if( eType != tt_Cross ) {
             // dla skrzyżowań muszą być podane kontrolne
-            if( ( ( ( p3 + p3 + p4 ) / 3.0 - p3 - cp3 ).Length() < 0.02 )
-             || ( ( ( p3 + p4 + p4 ) / 3.0 - p4 + cp3 ).Length() < 0.02 ) ) {
+            if( ( glm::length(( p3 + p3 + p4 ) / 3.0 - p3 - cp3) < 0.02 )
+             || ( glm::length(( p3 + p4 + p4 ) / 3.0 - p4 + cp3) < 0.02 ) ) {
                 // "prostowanie" prostych z kontrolnymi, dokładność 2cm
-                cp3 = cp4 = Math3D::vector3( 0, 0, 0 );
+				cp3 = cp4 = glm::dvec3(0, 0, 0);
             }
         }
 
@@ -737,22 +736,22 @@ void TTrack::Load(cParser *parser, glm::dvec3 const &pOrigin)
         }
         else {
             // HACK: crude check whether claimed straight is an actual straight piece
-            if( ( cp3 == Math3D::vector3() )
-             && ( cp4 == Math3D::vector3() ) ) {
+			if ((cp3 == glm::dvec3()) && (cp4 == glm::dvec3()))
+			{
                 segsize = 10.0; // for straights, 10m per segment works good enough
             }
             else {
                 // HACK: divide roughly in 10 segments. 
                 segsize =
                     clamp(
-                        ( p3 - p4 ).Length() * 0.1,
+                        glm::length( p3 - p4 ) * 0.1,
                         2.0 / Global.SplineFidelity,
                         10.0 / Global.SplineFidelity );
             }
         }
 
-        if( ( cp3 == Math3D::vector3( 0, 0, 0 ) )
-         && ( cp4 == Math3D::vector3( 0, 0, 0 ) ) ) {
+        if ((cp3 == glm::dvec3()) && (cp4 == glm::dvec3()))
+		{
             // Ra: hm, czasem dla prostego są podane...
             // gdy prosty, kontrolne wyliczane przy zmiennej przechyłce
             SwitchExtension->Segments[ 1 ]->Init( p3, p4, segsize, r3, r4 );
@@ -770,7 +769,8 @@ void TTrack::Load(cParser *parser, glm::dvec3 const &pOrigin)
         if (eType == tt_Cross)
         { // Ra 2014-07: dla skrzyżowań będą dodatkowe segmenty
             SwitchExtension->Segments[2]->Init(p2, cp2 + p2, cp4 + p4, p4, segsize, r2, r4); // z punktu 2 do 4
-            if (LengthSquared3(p3 - p1) < 0.01) // gdy mniej niż 10cm, to mamy skrzyżowanie trzech dróg
+			auto p1p3 = p3 - p1;
+            if (glm::dot(p1p3, p1p3) < 0.01) // gdy mniej niż 10cm, to mamy skrzyżowanie trzech dróg
                 SwitchExtension->iRoads = 3;
             else // dla 4 dróg będą dodatkowe 3 segmenty
             {
@@ -785,7 +785,7 @@ void TTrack::Load(cParser *parser, glm::dvec3 const &pOrigin)
         if( eType == tt_Switch )
         // Ra: zamienić później na iloczyn wektorowy
         {
-            Math3D::vector3 v1, v2;
+			glm::dvec3 v1, v2;
             double a1, a2;
             v1 =  SwitchExtension->Segments[0]->FastGetPoint_1()
                 - SwitchExtension->Segments[0]->FastGetPoint_0();
@@ -1517,14 +1517,14 @@ void TTrack::create_geometry( gfx::geometrybank_handle const &Bank ) {
         case tt_Cross: // skrzyżowanie dróg rysujemy inaczej
         { // ustalenie współrzędnych środka - przecięcie Point1-Point2 z CV4-Point4
             double a[4]; // kąty osi ulic wchodzących
-            Math3D::vector3 p[4]; // punkty się przydadzą do obliczeń
+			glm::dvec3 p[4]; // punkty się przydadzą do obliczeń
             // na razie połowa odległości pomiędzy Point1 i Point2, potem się dopracuje
             a[0] = a[1] = 0.5; // parametr do poszukiwania przecięcia łuków
             // modyfikować a[0] i a[1] tak, aby trafić na przecięcie odcinka 34
             p[0] = SwitchExtension->Segments[0]->FastGetPoint(a[0]); // współrzędne środka pierwszego odcinka
             p[1] = SwitchExtension->Segments[1]->FastGetPoint(a[1]); //-//- drugiego
             // p[2]=p[1]-p[0]; //jeśli różne od zera, przeliczyć a[0] i a[1] i wyznaczyć nowe punkty
-            Math3D::vector3 oxz = p[0]; // punkt mapowania środka tekstury skrzyżowania
+			glm::dvec3 oxz = p[0]; // punkt mapowania środka tekstury skrzyżowania
             p[0] = SwitchExtension->Segments[0]->GetDirection1(); // Point1 - pobranie wektorów kontrolnych
             p[1] = SwitchExtension->Segments[1]->GetDirection2(); // Point3 (bo zamienione)
             p[2] = SwitchExtension->Segments[0]->GetDirection2(); // Point2
@@ -2042,9 +2042,7 @@ TTrack * TTrack::RaAnimate()
                         cosa = -hlen * std::cos( glm::radians( SwitchExtension->fOffset ) );
                     SwitchExtension->vTrans = ac->TransGet();
                     auto middle = location() + SwitchExtension->vTrans; // SwitchExtension->Segments[0]->FastGetPoint(0.5);
-                    Segment->Init(
-                        middle + Math3D::vector3( sina, 0.0, cosa ),
-                        middle - Math3D::vector3( sina, 0.0, cosa ),
+                    Segment->Init(middle + glm::dvec3(sina, 0.0, cosa), middle - glm::dvec3(sina, 0.0, cosa),
                         10.0 ); // nowy odcinek
                     for( auto dynamic : Dynamics ) {
                         // minimalny ruch, aby przeliczyć pozycję
@@ -2086,7 +2084,7 @@ bool TTrack::IsGroupable()
     return true;
 };
 
-bool Equal( Math3D::vector3 v1, Math3D::vector3 *v2)
+bool Equal(glm::dvec3 v1, glm::dvec3 *v2)
 { // sprawdzenie odległości punktów
     // Ra: powinno być do 100cm wzdłuż toru i ze 2cm w poprzek (na prostej może nie być długiego
     // kawałka)
@@ -2101,7 +2099,7 @@ bool Equal( Math3D::vector3 v1, Math3D::vector3 *v2)
     // return (SquareMagnitude(v1-*v2)<0.00012); //0.011^2=0.00012
 };
 
-int TTrack::TestPoint( Math3D::vector3 *Point)
+int TTrack::TestPoint(glm::dvec3 *Point)
 { // sprawdzanie, czy tory można połączyć
     switch (eType)
     {

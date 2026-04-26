@@ -92,7 +92,7 @@ class TSwitchExtension
     basic_event *evPlus = nullptr,
            *evMinus = nullptr; // zdarzenia sygnalizacji rozprucia
     float fVelocity = -1.0; // maksymalne ograniczenie prędkości (ustawianej eventem)
-    Math3D::vector3 vTrans; // docelowa translacja przesuwnicy
+	glm::dvec3 vTrans; // docelowa translacja przesuwnicy
     material_handle m_material3 = 0; // texture of auto generated switch trackbed
     gfx::geometry_handle Geometry3; // geometry of auto generated switch trackbed
 
@@ -308,7 +308,7 @@ public:
     }
     double WidthTotal();
     bool IsGroupable();
-    int TestPoint( Math3D::vector3 *Point);
+	int TestPoint(glm::dvec3 *Point);
     void MovedUp1(float const dh);
     void VelocitySet(float v);
     double VelocityGet();

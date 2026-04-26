@@ -517,7 +517,7 @@ basic_cell::find( glm::dvec3 const &Point, float const Radius, bool const Onlyco
 std::tuple<TTrack *, int>
 basic_cell::find( glm::dvec3 const &Point, TTrack const *Exclude ) const {
 
-    Math3D::vector3 point { Point.x, Point.y, Point.z }; // sad workaround until math classes unification
+    glm::dvec3 point{Point.x, Point.y, Point.z}; // sad workaround until math classes unification // TODO: Is it needed?
     int endpointid;
 
     for( auto *path : m_directories.paths ) {

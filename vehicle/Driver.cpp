@@ -59,12 +59,14 @@ double GetDistanceToEvent(TTrack const *track, basic_event const *event, double 
     double seg_len = scan_dir > 0 ? 0.0 : 1.0;
     double const dzielnik = 1.0 / segment->GetLength();// rozdzielczosc mniej wiecej 1m
     int krok = 0; // krok obliczeniowy do sprawdzania czy odwracamy
-    len2 = (pos_event - segment->FastGetPoint(seg_len)).LengthSquared();
+	auto temp = pos_event - segment->FastGetPoint(seg_len);
+	len2 = glm::dot(temp, temp);
     do
     {
         len1 = len2;
         seg_len += scan_dir > 0 ? dzielnik : -dzielnik;
-        len2 = (pos_event - segment->FastGetPoint(seg_len)).LengthSquared();
+		temp = pos_event - segment->FastGetPoint(seg_len);
+        len2 = glm::dot(temp, temp);
         ++krok;
     } while ((len1 > len2) && (seg_len >= dzielnik && (seg_len <= (1.0 - dzielnik))));
     //trzeba sprawdzić czy seg_len nie osiągnął skrajnych wartości, bo wtedy
