@@ -583,7 +583,7 @@ void NvRenderer::RenderBatches(const RenderPass& pass) {
         glm::clamp(pass.m_origin, batch.m_origin - batch.m_extent,
                    batch.m_origin + batch.m_extent) -
         pass.m_origin;
-    if (glm::dot(closest_point, closest_point) >= batch.m_sqr_distance_max)
+    if (glm::length2(closest_point) >= batch.m_sqr_distance_max)
       return;
     if (batch.m_transforms.size() > 0) {
       double min_dist = std::numeric_limits<double>::max();
@@ -594,9 +594,9 @@ void NvRenderer::RenderBatches(const RenderPass& pass) {
                 batch.m_instance_radius))
           continue;
         glm::dvec3 offset = instance_transform[3].xyz - pass.m_origin;
-        double dist = glm::dot(offset, offset);
-        min_dist = glm::min(min_dist, dist);
-        max_dist = glm::max(max_dist, dist);
+        double dist2 = glm::length2(offset);
+        min_dist = glm::min(min_dist, dist2);
+        max_dist = glm::max(max_dist, dist2);
       }
       if (min_dist > max_dist) return;
       if (min_dist >= batch.m_sqr_distance_max ||

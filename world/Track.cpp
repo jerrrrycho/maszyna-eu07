@@ -770,7 +770,7 @@ void TTrack::Load(cParser *parser, glm::dvec3 const &pOrigin)
         { // Ra 2014-07: dla skrzyżowań będą dodatkowe segmenty
             SwitchExtension->Segments[2]->Init(p2, cp2 + p2, cp4 + p4, p4, segsize, r2, r4); // z punktu 2 do 4
 			auto p1p3 = p3 - p1;
-            if (glm::dot(p1p3, p1p3) < 0.01) // gdy mniej niż 10cm, to mamy skrzyżowanie trzech dróg
+            if (glm::length2(p1p3) < 0.01) // gdy mniej niż 10cm, to mamy skrzyżowanie trzech dróg
                 SwitchExtension->iRoads = 3;
             else // dla 4 dróg będą dodatkowe 3 segmenty
             {
