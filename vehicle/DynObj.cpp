@@ -23,6 +23,7 @@ http://mozilla.org/MPL/2.0/.
 #include "utilities/Globals.h"
 #include "utilities/Timer.h"
 #include "utilities/Logs.h"
+#include "utilities/glmHelpers.h"
 #include "Console.h"
 #include "world/Traction.h"
 #include "audio/sound.h"
@@ -2695,7 +2696,7 @@ void TDynamicObject::Move(double fDistance)
             vLeft = glm::normalize(glm::cross(vUp, vFront)); // wektor w lewo
             // vUp=CrossProduct(vFront,vLeft); //wektor w górę
         }
-		mMatrix = Math3D::BasisChange(vLeft, vUp, vFront); // to też można by od razu policzyć, ale potrzebne jest do wyświetlania // przesuwanie jest jednak rzadziej niż renderowanie
+		mMatrix = BasisChange(vLeft, vUp, vFront); // to też można by od razu policzyć, ale potrzebne jest do wyświetlania // przesuwanie jest jednak rzadziej niż renderowanie
         mMatrix = glm::inverse(mMatrix); // wyliczenie macierzy dla pojazdu (potrzebna tylko do wyświetlania?)
         // if (MoverParameters->CategoryFlag&2)
         { // przesunięcia są używane po wyrzuceniu pociągu z toru

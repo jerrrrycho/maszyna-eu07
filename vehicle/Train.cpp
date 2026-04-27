@@ -23,7 +23,6 @@ http://mozilla.org/MPL/2.0/.
 #include "utilities/Logs.h"
 #include "model/MdlMngr.h"
 #include "model/Model3d.h"
-#include "utilities/dumb3d.h"
 #include "utilities/Timer.h"
 #include "vehicle/Driver.h"
 #include "vehicle/DynObj.h"

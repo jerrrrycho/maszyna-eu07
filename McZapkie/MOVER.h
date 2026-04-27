@@ -78,7 +78,6 @@ zwiekszenie nacisku przy duzych predkosciach w hamulcach Oerlikona
 ...
 */
 
-#include "utilities/dumb3d.h"
 #include "utilities/utilities.h"
 
 extern int ConversionError;

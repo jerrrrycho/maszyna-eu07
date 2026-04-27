@@ -12,6 +12,7 @@ http://mozilla.org/MPL/2.0/.
 
 #include "utilities/Globals.h"
 #include "utilities/utilities.h"
+#include "utilities/glmHelpers.h"
 #include "Console.h"
 #include "utilities/Timer.h"
 #include "vehicle/Driver.h"
@@ -171,7 +172,7 @@ void TCamera::Update()
      || ( true == DebugCameraFlag ) ) {
         // free movement position update
         auto movement { Velocity };
-		movement = Math3D::RotateY(movement, Angle.y);
+		movement = RotateY(movement, Angle.y);
         Pos += movement * 5.0 * deltatime;
     }
     else {
@@ -194,7 +195,7 @@ void TCamera::Update()
             movement.y = -movement.y;
         }
 */
-		movement = Math3D::RotateY(movement, Angle.y);
+		movement = RotateY(movement, Angle.y);
 
         m_owneroffset += movement * deltatime;
     }
