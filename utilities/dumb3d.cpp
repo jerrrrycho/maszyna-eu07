@@ -34,6 +34,13 @@ glm::vec3 RotateY(glm::vec3 v, float angle)
 
 	return glm::vec3(c * v.x + s * v.z, v.y, c * v.z - s * v.x);
 }
+glm::dvec3 RotateY(glm::dvec3 v, double angle)
+{
+	double s = sin(angle);
+	double c = cos(angle);
+
+	return glm::vec3(c * v.x + s * v.z, v.y, c * v.z - s * v.x);
+}
 
 void vector3::RotateZ(double angle)
 {

@@ -46,9 +46,10 @@ basic_cell::on_click( TAnimModel const *Instance ) {
 void
 basic_cell::update_traction( TDynamicObject *Vehicle, int const Pantographindex ) {
     // Winger 170204 - szukanie trakcji nad pantografami
-    auto const vFront = glm::make_vec3( Vehicle->VectorFront().getArray() ); // wektor normalny dla płaszczyzny ruchu pantografu
-    auto const vUp = glm::make_vec3( Vehicle->VectorUp().getArray() ); // wektor pionu pudła (pochylony od pionu na przechyłce)
-    auto const vLeft = glm::make_vec3( Vehicle->VectorLeft().getArray() ); // wektor odległości w bok (odchylony od poziomu na przechyłce)
+    // TODO: Why glm::make_vec3 and glm::value_ptr?
+    auto const vFront = glm::make_vec3( glm::value_ptr(Vehicle->VectorFront()) ); // wektor normalny dla płaszczyzny ruchu pantografu
+    auto const vUp = glm::make_vec3( glm::value_ptr(Vehicle->VectorUp()) ); // wektor pionu pudła (pochylony od pionu na przechyłce)
+    auto const vLeft = glm::make_vec3( glm::value_ptr(Vehicle->VectorLeft()) ); // wektor odległości w bok (odchylony od poziomu na przechyłce)
     auto const position = glm::dvec3 { Vehicle->GetPosition() }; // współrzędne środka pojazdu
 
     auto pantograph = Vehicle->pants[ Pantographindex ].fParamPants;
@@ -689,10 +690,10 @@ basic_section::on_click( TAnimModel const *Instance ) {
 // legacy method, finds and assigns traction piece(s) to pantographs of provided vehicle
 void
 basic_section::update_traction( TDynamicObject *Vehicle, int const Pantographindex ) {
-
-    auto const vFront = glm::make_vec3( Vehicle->VectorFront().getArray() ); // wektor normalny dla płaszczyzny ruchu pantografu
-    auto const vUp = glm::make_vec3( Vehicle->VectorUp().getArray() ); // wektor pionu pudła (pochylony od pionu na przechyłce)
-    auto const vLeft = glm::make_vec3( Vehicle->VectorLeft().getArray() ); // wektor odległości w bok (odchylony od poziomu na przechyłce)
+    // TODO: Why glm::make_vec3 and glm::value_ptr?
+    auto const vFront = glm::make_vec3( glm::value_ptr(Vehicle->VectorFront()) ); // wektor normalny dla płaszczyzny ruchu pantografu
+    auto const vUp = glm::make_vec3( glm::value_ptr(Vehicle->VectorUp()) ); // wektor pionu pudła (pochylony od pionu na przechyłce)
+    auto const vLeft = glm::make_vec3( glm::value_ptr(Vehicle->VectorLeft()) ); // wektor odległości w bok (odchylony od poziomu na przechyłce)
     auto const position = glm::dvec3{ Vehicle->GetPosition() }; // współrzędne środka pojazdu
 
     auto pantograph = Vehicle->pants[ Pantographindex ].fParamPants;
@@ -1058,9 +1059,10 @@ basic_region::update_sounds() {
 void
 basic_region::update_traction( TDynamicObject *Vehicle, int const Pantographindex ) {
     // TODO: convert vectors to transformation matrix and pass them down the chain along with calculated position
-    auto const vFront = glm::make_vec3( Vehicle->VectorFront().getArray() ); // wektor normalny dla płaszczyzny ruchu pantografu
-    auto const vUp = glm::make_vec3( Vehicle->VectorUp().getArray() ); // wektor pionu pudła (pochylony od pionu na przechyłce)
-    auto const vLeft = glm::make_vec3( Vehicle->VectorLeft().getArray() ); // wektor odległości w bok (odchylony od poziomu na przechyłce)
+    // TODO: Why glm::make_vec3 and glm::value_ptr?
+    auto const vFront = glm::make_vec3( glm::value_ptr(Vehicle->VectorFront()) ); // wektor normalny dla płaszczyzny ruchu pantografu
+	auto const vUp = glm::make_vec3( glm::value_ptr(Vehicle->VectorUp()) ); // wektor pionu pudła (pochylony od pionu na przechyłce)
+    auto const vLeft = glm::make_vec3( glm::value_ptr(Vehicle->VectorLeft()) ); // wektor odległości w bok (odchylony od poziomu na przechyłce)
     auto const position = glm::dvec3 { Vehicle->GetPosition() }; // współrzędne środka pojazdu
 
     auto p = Vehicle->pants[ Pantographindex ].fParamPants;

@@ -806,7 +806,7 @@ bool opengl_renderer::Render_lowpoly( TDynamicObject *Dynamic, float const Squar
         ::glPushMatrix();
 
         ::glTranslated( originoffset.x, originoffset.y, originoffset.z );
-        ::glMultMatrixd( Dynamic->mMatrix.getArray() );
+        ::glMultMatrixd( glm::value_ptr(Dynamic->mMatrix) );
 
         m_renderspecular = true; // vehicles are rendered with specular component. static models without, at least for the time being
     }
@@ -2480,7 +2480,7 @@ opengl_renderer::Render( TDynamicObject *Dynamic ) {
     ::glPushMatrix();
 
     ::glTranslated( originoffset.x, originoffset.y, originoffset.z );
-    ::glMultMatrixd( Dynamic->mMatrix.getArray() );
+    ::glMultMatrixd( glm::value_ptr(Dynamic->mMatrix) );
 
     switch( m_renderpass.draw_mode ) {
 
@@ -2593,7 +2593,7 @@ opengl_renderer::Render_cab( TDynamicObject const *Dynamic, float const Lightlev
 
         auto const originoffset = Dynamic->GetPosition() - m_renderpass.camera.position();
         ::glTranslated( originoffset.x, originoffset.y, originoffset.z );
-        ::glMultMatrixd( Dynamic->mMatrix.readArray() );
+        ::glMultMatrixd( glm::value_ptr(Dynamic->mMatrix) );
 
         switch( m_renderpass.draw_mode ) {
             case rendermode::color: {
@@ -3675,7 +3675,7 @@ opengl_renderer::Render_Alpha( TDynamicObject *Dynamic ) {
     ::glPushMatrix();
 
     ::glTranslated( originoffset.x, originoffset.y, originoffset.z );
-    ::glMultMatrixd( Dynamic->mMatrix.getArray() );
+    ::glMultMatrixd( glm::value_ptr(Dynamic->mMatrix) );
 
     if( Dynamic->fShade > 0.0f ) {
         // change light level based on light level of the occupied track

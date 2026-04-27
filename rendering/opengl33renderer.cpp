@@ -1203,7 +1203,7 @@ bool opengl33_renderer::Render_lowpoly( TDynamicObject *Dynamic, float const Squ
 
         ::glPushMatrix();
         ::glTranslated( originoffset.x, originoffset.y, originoffset.z );
-        ::glMultMatrixd( Dynamic->mMatrix.readArray() );
+		::glMultMatrixd( glm::value_ptr(Dynamic->mMatrix) );
     }
     // HACK: reduce light level for vehicle interior if there's strong global lighting source
     if( false == Alpha ) {
@@ -2890,7 +2890,7 @@ bool opengl33_renderer::Render(TDynamicObject *Dynamic)
 
 	::glPushMatrix();
 	::glTranslated(originoffset.x, originoffset.y, originoffset.z);
-	::glMultMatrixd(Dynamic->mMatrix.getArray());
+	::glMultMatrixd(glm::value_ptr(Dynamic->mMatrix));
 
 	switch (m_renderpass.draw_mode)
 	{
@@ -3012,7 +3012,7 @@ bool opengl33_renderer::Render_cab(TDynamicObject const *Dynamic, float const Li
 
 		auto const originoffset = Dynamic->GetPosition() - m_renderpass.pass_camera.position();
 		::glTranslated(originoffset.x, originoffset.y, originoffset.z);
-		::glMultMatrixd(Dynamic->mMatrix.readArray());
+		::glMultMatrixd(glm::value_ptr(Dynamic->mMatrix));
 
         switch (m_renderpass.draw_mode)
 		{
@@ -3908,7 +3908,7 @@ bool opengl33_renderer::Render_Alpha(TDynamicObject *Dynamic)
 	::glPushMatrix();
 
 	::glTranslated(originoffset.x, originoffset.y, originoffset.z);
-	::glMultMatrixd(Dynamic->mMatrix.getArray());
+	::glMultMatrixd(glm::value_ptr(Dynamic->mMatrix));
 
 	if (Dynamic->fShade > 0.0f)
 	{
@@ -4665,7 +4665,7 @@ void opengl33_renderer::Update_Lights(light_array &Lights)
             auto const offset{ 75.f * ( 5.f / cone ) };
             headlights.position() =
                 scenelight.owner->GetPosition()
-                - scenelight.direction * offset
+                - glm::dvec3(scenelight.direction * offset)
                 + up * ( size * 0.5 );
 /*
             headlights.projection() = ortho_projection(

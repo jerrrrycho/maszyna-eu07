@@ -46,12 +46,12 @@ light_array::update() {
         if( light.index == end::front ) {
             // front light set
             light.position = light.owner->GetPosition() + ( light.owner->VectorFront() * ( std::max( 0.0, light.owner->GetLength() * 0.5 - 2.0 ) ) );// +( light.owner->VectorUp() * 0.25 );
-            light.direction = glm::make_vec3( light.owner->VectorFront().getArray() );
+            light.direction = glm::make_vec3( glm::value_ptr(light.owner->VectorFront()) ); // TODO: It is needed to get value_ptr and then make_vec3?
         }
         else {
             // rear light set
             light.position = light.owner->GetPosition() - ( light.owner->VectorFront() * ( std::max( 0.0, light.owner->GetLength() * 0.5 - 2.0 ) ) );// +( light.owner->VectorUp() * 0.25 );
-            light.direction = glm::make_vec3( light.owner->VectorFront().getArray() );
+            light.direction = glm::make_vec3( glm::value_ptr(light.owner->VectorFront()) ); // TODO: It is needed to get value_ptr and then make_vec3?
             light.direction.x = -light.direction.x;
             light.direction.z = -light.direction.z;
         }

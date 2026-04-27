@@ -928,9 +928,9 @@ sound_source::location() const {
     // otherwise combine offset with the location of the carrier
     return {
         m_owner->GetPosition()
-        + m_owner->VectorLeft() * m_offset.x
-        + m_owner->VectorUp() * m_offset.y
-        + m_owner->VectorFront() * m_offset.z };
+        + m_owner->VectorLeft() * (double)m_offset.x
+        + m_owner->VectorUp() * (double)m_offset.y
+        + m_owner->VectorFront() * (double)m_offset.z };
 }
 
 void

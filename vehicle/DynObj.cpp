@@ -34,9 +34,9 @@ http://mozilla.org/MPL/2.0/.
 #include "vehicle/Driver.h"
 
 // Ra: taki zapis funkcjonuje lepiej, ale może nie jest optymalny
-#define vWorldFront Math3D::vector3(0, 0, 1)
-#define vWorldUp Math3D::vector3(0, 1, 0)
-#define vWorldLeft CrossProduct(vWorldUp, vWorldFront)
+#define vWorldFront glm::vec3(0, 0, 1)
+#define vWorldUp glm::vec3(0, 1, 0)
+#define vWorldLeft glm::cross(vWorldUp, vWorldFront)
 
 #define M_2PI 6.283185307179586476925286766559;
 const float maxrot = (float)(M_PI / 3.0); // 60°
@@ -72,7 +72,7 @@ TextureTest( std::string const &Name ) {
 //---------------------------------------------------------------------------
 void TAnimPant::AKP_4E()
 { // ustawienie wymiarów dla pantografu AKP-4E
-    vPos = Math3D::vector3(0, 0, 0); // przypisanie domyśnych współczynników do pantografów
+	vPos = glm::dvec3(0, 0, 0); // przypisanie domyśnych współczynników do pantografów
     fLenL1 = 1.22; // 1.176289 w modelach
     fLenU1 = 1.755; // 1.724482197 w modelach
     fHoriz = 0.535; // 0.54555075 przesunięcie ślizgu w długości pojazdu względem
@@ -99,7 +99,7 @@ void TAnimPant::AKP_4E()
 };
 void TAnimPant::WBL85()
 { // ustawienie wymiarów dla pantografu WBL88
-	vPos = Math3D::vector3(0, 0, 0); // przypisanie domyśnych współczynników do pantografów
+	vPos = glm::dvec3(0, 0, 0); // przypisanie domyśnych współczynników do pantografów
 
     // mnozniki animacji ramion dla pantografu WBL88
 	rd1rf = 1.f;
@@ -133,7 +133,7 @@ void TAnimPant::WBL85()
 };
 void TAnimPant::EC160_200()
 { // ustawienie wymiarów dla pantografow EC160 lub EC200
-	vPos = Math3D::vector3(0, 0, 0); // przypisanie domyśnych współczynników do pantografów
+	vPos = glm::dvec3(0, 0, 0); // przypisanie domyśnych współczynników do pantografów
 
 	// mnozniki animacji ramion dla pantografow EC160 lub EC200
 	rd1rf = 1.f;
@@ -167,7 +167,7 @@ void TAnimPant::EC160_200()
 };
 void TAnimPant::DSAx()
 { // ustawienie wymiarów dla pantografow z rodziny DSA
-	vPos = Math3D::vector3(0, 0, 0); // przypisanie domyśnych współczynników do pantografów
+	vPos = glm::dvec3(0, 0, 0); // przypisanie domyśnych współczynników do pantografów
 
 	// mnozniki animacji ramion dla pantografow z rodziny DSA
 	rd1rf = 1.f;
@@ -504,7 +504,7 @@ TDynamicObject * TDynamicObject::GetFirstDynamic(int cpl_type, int cf)
     return FirstFind(cpl_type, cf); // używa referencji
 };
 
-void TDynamicObject::ABuSetModelShake( Math3D::vector3 mShake )
+void TDynamicObject::ABuSetModelShake(glm::dvec3 mShake)
 {
     modelShake = mShake;
 };
@@ -619,7 +619,7 @@ void TDynamicObject::UpdateDoorTranslate(TAnim *pAnim) {
             side::left ) ] };
 
     pAnim->smAnimated->SetTranslate(
-        Math3D::vector3{
+        glm::vec3{
             0.0,
             0.0,
             door.position } );
@@ -683,7 +683,7 @@ void TDynamicObject::UpdateDoorPlug(TAnim *pAnim) {
             side::left ) ] };
 
     pAnim->smAnimated->SetTranslate(
-        Math3D::vector3 {
+        glm::vec3{
             std::min(
                 door.position * 2.f,
                 MoverParameters->Doors.range_out ),
@@ -722,7 +722,7 @@ void TDynamicObject::UpdatePlatformTranslate( TAnim *pAnim ) {
             side::left ) ] };
 
     pAnim->smAnimated->SetTranslate(
-        Math3D::vector3{
+        glm::vec3{
             interpolate( 0.f, MoverParameters->Doors.step_range, door.step_position ),
             0.0,
             0.0 } );
@@ -1081,10 +1081,10 @@ void TDynamicObject::ABuLittleUpdate(double ObjSqrDist)
                 if( dist >= 0.0 ) { continue; }
 
                 if( smBuforLewy[ i ] ) {
-                    smBuforLewy[ i ]->SetTranslate( Math3D::vector3( dist, 0, 0 ) );
+                    smBuforLewy[ i ]->SetTranslate( glm::vec3( dist, 0, 0 ) );
                 }
                 if( smBuforPrawy[ i ] ) {
-                    smBuforPrawy[ i ]->SetTranslate( Math3D::vector3( dist, 0, 0 ) );
+                    smBuforPrawy[ i ]->SetTranslate( glm::vec3( dist, 0, 0 ) );
                 }
             }
         } // vehicle within 50m
@@ -1411,19 +1411,20 @@ TDynamicObject * TDynamicObject::ABuFindNearestObject(glm::vec3 pos, TTrack *Tra
 
         if( CouplNr == -2 ) {
             // wektor [kamera-obiekt] - poszukiwanie obiektu
-			if( Math3D::LengthSquared3( pos - dynamic->vPosition ) < 100.0 ) {
+			if (glm::length(glm::dvec3(pos) - dynamic->vPosition) < 10.0)
+			{
                 // 10 metrów
                 return dynamic;
             }
         }
         else {
             // jeśli (CouplNr) inne niz -2, szukamy sprzęgu
-			if( Math3D::LengthSquared3( pos - dynamic->vCoulpler[ 0 ] ) < 25.0 ) {
+			if (glm::length(glm::dvec3(pos) - dynamic->vCoulpler[0]) < 5.0) {
                 // 5 metrów
                 CouplNr = 0;
                 return dynamic;
             }
-			if( Math3D::LengthSquared3( pos - dynamic->vCoulpler[ 1 ] ) < 25.0 ) {
+			if (glm::length(glm::dvec3(pos) - dynamic->vCoulpler[1]) < 5.0) {
                 // 5 metrów
                 CouplNr = 1;
                 return dynamic;
@@ -1860,7 +1861,7 @@ TDynamicObject::remove_coupler_adapter( int const Side ) {
 }
 
 TDynamicObject::TDynamicObject() {
-    modelShake = Math3D::vector3(0, 0, 0);
+    modelShake = glm::dvec3(0, 0, 0);
 //    fTrackBlock = 10000.0; // brak przeszkody na drodze
     btnOn = false;
     vUp = vWorldUp;
@@ -1897,8 +1898,8 @@ TDynamicObject::TDynamicObject() {
     smBuforLewy[0] = smBuforLewy[1] = NULL;
     smBuforPrawy[0] = smBuforPrawy[1] = NULL;
     smBogie[0] = smBogie[1] = NULL;
-    bogieRot[0] = bogieRot[1] = Math3D::vector3(0, 0, 0);
-    modelRot = Math3D::vector3(0, 0, 0);
+	bogieRot[0] = bogieRot[1] = glm::dvec3(0, 0, 0);
+	modelRot = glm::dvec3(0, 0, 0);
     cp1 = cp2 = sp1 = sp2 = 0;
     iDirection = 1; // stoi w kierunku tradycyjnym (0, gdy jest odwrócony)
     iAxleFirst = 0; // numer pierwszej osi w kierunku ruchu (przełączenie
@@ -2545,7 +2546,7 @@ TDynamicObject::Init(std::string Name, // nazwa pojazdu, np. "EU07-424"
     // potem juz liczona prawidlowa wartosc masy
     MoverParameters->ComputeConstans();
     // wektor podłogi dla wagonów, przesuwa ładunek
-    vFloor = Math3D::vector3(0, 0, MoverParameters->Floor);
+	vFloor = glm::dvec3(0, 0, MoverParameters->Floor);
 
     // długość większa od zera oznacza OK; 2mm docisku?
     return MoverParameters->Dim.L;
@@ -2669,7 +2670,7 @@ void TDynamicObject::Move(double fDistance)
         vFront = Axle0.pPosition - Axle1.pPosition; // wektor pomiędzy skrajnymi osiami
         // Ra 2F1J: to nie jest stabilne (powoduje rzucanie taborem) i wymaga
         // dopracowania
-        fAdjustment = vFront.Length() - fAxleDist; // na łuku będzie ujemny
+        fAdjustment = glm::length(vFront) - fAxleDist; // na łuku będzie ujemny
         // if (fabs(fAdjustment)>0.02) //jeśli jest zbyt dużo, to rozłożyć na kilka przeliczeń (wygasza drgania?)
         //{//parę centymetrów trzeba by już skorygować; te błędy mogą się też
         // generować na ostrych łukach
@@ -2677,27 +2678,25 @@ void TDynamicObject::Move(double fDistance)
         //}
         // else
         // fAdjustment=0.0;
-        vFront = Normalize(vFront); // kierunek ustawienia pojazdu (wektor jednostkowy)
-        vLeft = Normalize(CrossProduct(vWorldUp, vFront)); // wektor poziomy w lewo,
+        vFront = glm::normalize(vFront); // kierunek ustawienia pojazdu (wektor jednostkowy)
+		vLeft = glm::normalize(glm::cross(glm::dvec3(vWorldUp), vFront)); // wektor poziomy w lewo,
         // normalizacja potrzebna z powodu pochylenia (vFront)
-        vUp = CrossProduct(vFront, vLeft); // wektor w górę, będzie jednostkowy
+        vUp = glm::cross(vFront, vLeft); // wektor w górę, będzie jednostkowy
         modelRot.z = atan2(-vFront.x, vFront.z); // kąt obrotu pojazdu [rad]; z ABuBogies()
         auto const roll { Roll() }; // suma przechyłek
         if (roll != 0.0)
         { // wyznaczanie przechylenia tylko jeśli jest przechyłka
             // można by pobrać wektory normalne z toru...
-            mMatrix.Identity(); // ta macierz jest potrzebna głównie do wyświetlania
-            mMatrix.Rotation(roll * 0.5, vFront); // obrót wzdłuż osi o przechyłkę
-            vUp = mMatrix * vUp; // wektor w górę pojazdu (przekręcenie na przechyłce)
+			mMatrix = glm::rotate(glm::dmat4(1.0), roll * 0.5, vFront); // ta macierz jest potrzebna głównie do wyświetlania // obrót wzdłuż osi o przechyłkę
+			vUp = glm::dvec3(mMatrix * glm::dvec4(vUp, 0.0)); // wektor w górę pojazdu (przekręcenie na przechyłce)
             // vLeft=mMatrix*DynamicObject->vLeft;
             // vUp=CrossProduct(vFront,vLeft); //wektor w górę
             // vLeft=Normalize(CrossProduct(vWorldUp,vFront)); //wektor w lewo
-            vLeft = Normalize(CrossProduct(vUp, vFront)); // wektor w lewo
+            vLeft = glm::normalize(glm::cross(vUp, vFront)); // wektor w lewo
             // vUp=CrossProduct(vFront,vLeft); //wektor w górę
         }
-        mMatrix.Identity(); // to też można by od razu policzyć, ale potrzebne jest do wyświetlania
-        mMatrix.BasisChange(vLeft, vUp, vFront); // przesuwanie jest jednak rzadziej niż renderowanie
-        mMatrix = Inverse(mMatrix); // wyliczenie macierzy dla pojazdu (potrzebna tylko do wyświetlania?)
+		mMatrix = Math3D::BasisChange(vLeft, vUp, vFront); // to też można by od razu policzyć, ale potrzebne jest do wyświetlania // przesuwanie jest jednak rzadziej niż renderowanie
+        mMatrix = glm::inverse(mMatrix); // wyliczenie macierzy dla pojazdu (potrzebna tylko do wyświetlania?)
         // if (MoverParameters->CategoryFlag&2)
         { // przesunięcia są używane po wyrzuceniu pociągu z toru
             vPosition.x += MoverParameters->OffsetTrackH * vLeft.x; // dodanie przesunięcia w bok
@@ -8075,7 +8074,7 @@ TDynamicObject::update_shake( double const Timedelta ) {
     // Granice mozna ustalic doswiadczalnie. Ja proponuje 14:20
     if( Global.iSlowMotion == 0 ) { // musi być pełna prędkość
 
-        Math3D::vector3 shakevector;
+        glm::dvec3 shakevector;
         if( ( MoverParameters->EngineType == TEngineType::DieselElectric )
          || ( MoverParameters->EngineType == TEngineType::DieselEngine ) ) {
             if( std::abs( MoverParameters->enrot ) > 0.0 ) {
@@ -8117,7 +8116,7 @@ TDynamicObject::update_shake( double const Timedelta ) {
         auto const iVel { std::min( GetVelocity(), 150.0 ) };
         if( iVel > 0.5 ) {
             // acceleration-driven base shake
-            shakevector += Math3D::vector3(
+			shakevector += glm::dvec3(
                 -MoverParameters->AccN * Timedelta * 5.0 * Global.ShakingMultiplierRL, // highlight side sway
                 -MoverParameters->AccVert * Timedelta * Global.ShakingMultiplierUD,
                 -MoverParameters->AccSVBased * Timedelta * 1.5 * Global.ShakingMultiplierBF); // accent acceleration/deceleration
@@ -8128,7 +8127,7 @@ TDynamicObject::update_shake( double const Timedelta ) {
         if( LocalRandom( iVel ) > 25.0 ) {
             // extra shake at increased velocity
             shake += ShakeSpring.ComputateForces(
-                Math3D::vector3(
+                glm::dvec3(
                 ( LocalRandom( iVel * 2 ) - iVel ) / ( ( iVel * 2 ) * 4 ) * BaseShake.jolt_scale.x,
                 ( LocalRandom( iVel * 2 ) - iVel ) / ( ( iVel * 2 ) * 4 ) * BaseShake.jolt_scale.y,
                 ( LocalRandom( iVel * 2 ) - iVel ) / ( ( iVel * 2 ) * 4 ) * BaseShake.jolt_scale.z )
@@ -8138,7 +8137,7 @@ TDynamicObject::update_shake( double const Timedelta ) {
         }
         shake *= 0.85;
 
-        ShakeState.velocity -= ( shake + ShakeState.velocity * 100 ) * ( BaseShake.jolt_scale.x + BaseShake.jolt_scale.y + BaseShake.jolt_scale.z ) / ( 200 );
+        ShakeState.velocity -= ( shake + ShakeState.velocity * 100.0 ) * ( BaseShake.jolt_scale.x + BaseShake.jolt_scale.y + BaseShake.jolt_scale.z ) / ( 200.0 );
 
         // McZapkie:
         ShakeState.offset += ShakeState.velocity * Timedelta;
@@ -8741,10 +8740,10 @@ vehicle_table::update( double Deltatime, int Iterationcount ) {
 // legacy method, checks for presence and height of traction wire for specified vehicle
 void
 vehicle_table::update_traction( TDynamicObject *Vehicle ) {
-
-    auto const vFront = glm::make_vec3( Vehicle->VectorFront().getArray() ); // wektor normalny dla płaszczyzny ruchu pantografu
-    auto const vUp = glm::make_vec3( Vehicle->VectorUp().getArray() ); // wektor pionu pudła (pochylony od pionu na przechyłce)
-    auto const vLeft = glm::make_vec3( Vehicle->VectorLeft().getArray() ); // wektor odległości w bok (odchylony od poziomu na przechyłce)
+    // TODO: Why glm::make_vec3 and glm::value_ptr?
+    auto const vFront = glm::make_vec3( glm::value_ptr(Vehicle->VectorFront()) ); // wektor normalny dla płaszczyzny ruchu pantografu
+    auto const vUp = glm::make_vec3( glm::value_ptr(Vehicle->VectorUp()) ); // wektor pionu pudła (pochylony od pionu na przechyłce)
+    auto const vLeft = glm::make_vec3( glm::value_ptr(Vehicle->VectorLeft()) ); // wektor odległości w bok (odchylony od poziomu na przechyłce)
     auto const position = glm::dvec3 { Vehicle->GetPosition() }; // współrzędne środka pojazdu
 
     for( int pantographindex = 0; pantographindex < Vehicle->iAnimType[ ANIM_PANTS ]; ++pantographindex ) {

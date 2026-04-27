@@ -222,12 +222,12 @@ bool TCamera::SetMatrix( glm::dmat4 &Matrix ) {
 
 void TCamera::RaLook()
 { // zmiana kierunku patrzenia - przelicza Yaw
-    Math3D::vector3 where = glm::dvec3(LookAt )- Pos /*+ Math3D::vector3(0, 3, 0)*/; // trochę w górę od szyn
+    auto where = glm::dvec3(LookAt )- Pos /*+ Math3D::vector3(0, 3, 0)*/; // trochę w górę od szyn
     if( ( where.x != 0.0 ) || ( where.z != 0.0 ) ) {
         Angle.y = atan2( -where.x, -where.z ); // kąt horyzontalny
         m_rotationoffsets.y = 0.0;
     }
-    double l = Math3D::Length3(where);
+    double l = glm::length(where);
     if( l > 0.0 ) {
         Angle.x = asin( where.y / l ); // kąt w pionie
         m_rotationoffsets.x = 0.0;

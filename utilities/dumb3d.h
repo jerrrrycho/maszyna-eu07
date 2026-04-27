@@ -15,6 +15,27 @@ namespace Math3D
 {
 
     glm::vec3 RotateY(glm::vec3 v, float angle);
+    glm::dvec3 RotateY(glm::dvec3 v, double angle);
+
+    inline glm::dmat4 BasisChange(glm::dvec3 u, glm::dvec3 v, glm::dvec3 n)
+    {
+	    glm::dmat4 M(1.0);
+
+	    M[0] = glm::dvec4(u, 0.0); // kolumna 0
+	    M[1] = glm::dvec4(v, 0.0); // kolumna 1
+	    M[2] = glm::dvec4(n, 0.0); // kolumna 2
+	    M[3] = glm::dvec4(0.0, 0.0, 0.0, 1.0); // kolumna 3
+
+	    return M;
+    }
+
+    inline glm::dmat4 BasisChange(glm::dvec3 v, glm::dvec3 n)
+    {
+	    glm::dvec3 u = glm::cross(v, n);
+	    return BasisChange(u, v, n);
+    }
+
+
 
 // Define this to have Math3D.cp generate a main which tests these classes
 //#define TEST_MATH3D
