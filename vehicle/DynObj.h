@@ -716,7 +716,7 @@ private:
     // TODO: check if scanning takes into account direction when selecting axle
     // if it does, replace the version above
     // if it doesn't, fix it so it does
-    inline Math3D::vector3 AxlePositionGet() {
+    inline glm::dvec3 AxlePositionGet() {
         return (
             iDirection ?
                 ( iAxleFirst ? Axle1.pPosition : Axle0.pPosition ) :
@@ -834,8 +834,8 @@ public:
     std::pair<double, double> shake_angles() const;
 // members
     struct baseshake_config {
-        Math3D::vector3 angle_scale { 0.05, 0.0, 0.1 }; // roll, yaw, pitch
-        Math3D::vector3 jolt_scale { 0.2, 0.2, 0.1 };
+        glm::dvec3 angle_scale { 0.05, 0.0, 0.1 }; // roll, yaw, pitch
+		glm::dvec3 jolt_scale{0.2, 0.2, 0.1};
         double jolt_limit { 2.0f };
     } BaseShake;
     struct engineshake_config {

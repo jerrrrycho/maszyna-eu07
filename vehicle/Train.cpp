@@ -563,7 +563,7 @@ TTrain::TTrain() {
     fPPress = fNPress = 0;
 
     // asMessage="";
-    pMechOffset = Math3D::vector3(0, 0, 0);
+	pMechOffset = glm::dvec3(0, 0, 0);
     fBlinkTimer = 0;
     fHaslerTimer = 0;
     DynamicSet(NULL); // ustawia wszystkie mv*
@@ -5147,11 +5147,10 @@ void TTrain::OnCommand_endsignalstoggle( TTrain *Train, command_data const &Comm
         auto *vehicle { std::get<TDynamicObject *>( simulation::Region->find_vehicle( Command.location, 10, false, true ) ) };
 
         if( vehicle == nullptr ) { return; }
-		// TODO: Maybe command_data should be dvec3?
         int const CouplNr {
             clamp(
                 vehicle->DirectionGet()
-                * ( Math3D::LengthSquared3( vehicle->HeadPosition() - glm::dvec3(Command.location) ) > Math3D::LengthSquared3( vehicle->RearPosition() - glm::dvec3(Command.location) ) ?
+                * ( glm::length2( vehicle->HeadPosition() - glm::dvec3(Command.location) ) > glm::length2( vehicle->RearPosition() - glm::dvec3(Command.location) ) ?
                      1 :
                     -1 ),
                 0, 1 ) }; // z [-1,1] zrobić [0,1]
