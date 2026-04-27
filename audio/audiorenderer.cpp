@@ -406,7 +406,7 @@ openal_renderer::update( double const Deltatime ) {
             cameramove = glm::dvec3{ 0.0 };
         }
         // ... from camera jump to another location
-        if( glm::length( cameramove ) > 100.0 ) {
+        if( glm::length2( cameramove ) > 100.0 * 100.0) { // length2 is better than length for comparing because it does not require sqrt function
             cameramove = glm::dvec3{ 0.0 };
         }
         m_listenervelocity = limit_velocity( cameramove / Deltatime );

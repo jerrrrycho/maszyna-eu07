@@ -285,7 +285,8 @@ basic_cell::insert( shape_node Shape ) {
         if( ( shapedata.rangesquared_min == targetshapedata.rangesquared_min )
          && ( shapedata.rangesquared_max == targetshapedata.rangesquared_max )
         // ...and located close to each other (within arbitrary limit of 25m)
-         && ( glm::length( shapedata.area.center - targetshapedata.area.center ) < 25.0 ) ) {
+		    // length2 is better than length for comparing because it does not require sqrt function
+         && ( glm::length2( shapedata.area.center - targetshapedata.area.center ) < 25.0 * 25.0 ) ) {
 
             if( true == targetshape.merge( Shape ) ) {
                 // if the shape was merged there's nothing left to do
@@ -311,7 +312,8 @@ basic_cell::insert( lines_node Lines ) {
         if( ( linesdata.rangesquared_min == targetlinesdata.rangesquared_min )
          && ( linesdata.rangesquared_max == targetlinesdata.rangesquared_max )
         // ...and located close to each other (within arbitrary limit of 10m)
-         && ( glm::length( linesdata.area.center - targetlinesdata.area.center ) < 10.0 ) ) {
+		    // length2 is better than length for comparing because it does not require sqrt function
+         && ( glm::length2( linesdata.area.center - targetlinesdata.area.center ) < 10.0 * 10.0) ) {
 
             if( true == targetlines.merge( Lines ) ) {
                 // if the shape was merged there's nothing left to do

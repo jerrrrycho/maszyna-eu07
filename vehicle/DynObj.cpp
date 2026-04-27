@@ -1412,7 +1412,8 @@ TDynamicObject * TDynamicObject::ABuFindNearestObject(glm::vec3 pos, TTrack *Tra
 
         if( CouplNr == -2 ) {
             // wektor [kamera-obiekt] - poszukiwanie obiektu
-			if (glm::length(glm::dvec3(pos) - dynamic->vPosition) < 10.0)
+			// length2 is better than length for comparing because it does not require sqrt function
+			if (glm::length2(glm::dvec3(pos) - dynamic->vPosition) < 10.0 * 10.0)
 			{
                 // 10 metrów
                 return dynamic;
@@ -1420,12 +1421,14 @@ TDynamicObject * TDynamicObject::ABuFindNearestObject(glm::vec3 pos, TTrack *Tra
         }
         else {
             // jeśli (CouplNr) inne niz -2, szukamy sprzęgu
-			if (glm::length(glm::dvec3(pos) - dynamic->vCoulpler[0]) < 5.0) {
+			// length2 is better than length for comparing because it does not require sqrt function
+			if (glm::length2(glm::dvec3(pos) - dynamic->vCoulpler[0]) < 5.0 * 5.0) {
                 // 5 metrów
                 CouplNr = 0;
                 return dynamic;
             }
-			if (glm::length(glm::dvec3(pos) - dynamic->vCoulpler[1]) < 5.0) {
+			// length2 is better than length for comparing because it does not require sqrt function
+			if (glm::length2(glm::dvec3(pos) - dynamic->vCoulpler[1]) < 5.0 * 5.0) {
                 // 5 metrów
                 CouplNr = 1;
                 return dynamic;

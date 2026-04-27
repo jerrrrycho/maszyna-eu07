@@ -1293,7 +1293,8 @@ bool opengl33_renderer::Render_reflections(viewport_config &vp)
 
     auto const timestamp{ Timer::GetRenderTime() };
     if( ( timestamp - m_environmentupdatetime < Global.reflectiontune.update_interval )
-     && ( glm::length( m_renderpass.pass_camera.position() - m_environmentupdatelocation ) < 1000.0 ) ) {
+     && ( glm::length2( m_renderpass.pass_camera.position() - m_environmentupdatelocation ) < 1000.0 * 1000.0 ) ) // length2 is better than length for comparing because it does not require sqrt function
+	{
         // run update every 5+ mins of simulation time, or at least 1km from the last location
         return false;
     }
@@ -4620,7 +4621,7 @@ void opengl33_renderer::Update_Lights(light_array &Lights)
 			break;
 		}
 		auto const lightoffset = glm::vec3{scenelight.position - camera};
-		if (glm::length(lightoffset) > 1000.f) {
+		if (glm::length2(lightoffset) > 1000.f * 1000.f) {
 			// we don't care about lights past arbitrary limit of 1 km.
 			// but there could still be weaker lights which are closer, so keep looking
 			continue;
