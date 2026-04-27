@@ -1266,7 +1266,7 @@ bool opengl33_renderer::Render_coupler_adapter( TDynamicObject *Dynamic, float c
 
     if( Dynamic->m_coupleradapters[ End ] == nullptr ) { return false; }
 
-    auto const position { Math3D::vector3 {
+    auto const position { glm::dvec3 {
         0.f,
         Dynamic->MoverParameters->Couplers[ End ].adapter_height,
         ( Dynamic->MoverParameters->Couplers[ End ].adapter_length + Dynamic->MoverParameters->Dim.L * 0.5 ) * ( End == end::front ? 1 : -1 ) } };
@@ -2681,7 +2681,7 @@ void opengl33_renderer::Render(scene::shape_node const &Shape, bool const Ignore
 		case rendermode::shadows:
         {
 			// 'camera' for the light pass is the light source, but we need to draw what the 'real' camera sees
-			distancesquared = Math3D::SquareMagnitude((data.area.center - m_renderpass.viewport_camera.position()) / (double)Global.ZoomFactor) / Global.fDistanceFactor;
+			distancesquared = glm::length2((data.area.center - m_renderpass.viewport_camera.position()) / (double)Global.ZoomFactor) / Global.fDistanceFactor;
 			break;
 		}
         case rendermode::reflections:
@@ -3105,9 +3105,9 @@ bool opengl33_renderer::Render(TModel3d *Model, material_data const *Material, f
 	return true;
 }
 
-bool opengl33_renderer::Render(TModel3d *Model, material_data const *Material, float const Squaredistance, Math3D::vector3 const &Position, glm::vec3 const &A)
+bool opengl33_renderer::Render(TModel3d *Model, material_data const *Material, float const Squaredistance, glm::dvec3 const &Position, glm::vec3 const &A)
 {
-	Math3D::vector3 Angle(A);
+	glm::dvec3 Angle(A); // TODO: Why copy?
 	::glPushMatrix();
 	::glTranslated(Position.x, Position.y, Position.z);
 	if (Angle.y != 0.0)
@@ -3980,9 +3980,9 @@ bool opengl33_renderer::Render_Alpha(TModel3d *Model, material_data const *Mater
 	return true;
 }
 
-bool opengl33_renderer::Render_Alpha(TModel3d *Model, material_data const *Material, float const Squaredistance, Math3D::vector3 const &Position, glm::vec3 const &A)
+bool opengl33_renderer::Render_Alpha(TModel3d *Model, material_data const *Material, float const Squaredistance, glm::dvec3 const &Position, glm::vec3 const &A)
 {
-	Math3D::vector3 Angle(A);
+	glm::dvec3 Angle(A); // TODO: Why copy?
 	::glPushMatrix();
 	::glTranslated(Position.x, Position.y, Position.z);
 	if (Angle.y != 0.0)

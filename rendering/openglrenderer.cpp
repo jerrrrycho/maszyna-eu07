@@ -867,7 +867,7 @@ bool opengl_renderer::Render_coupler_adapter( TDynamicObject *Dynamic, float con
 
     if( Dynamic->m_coupleradapters[ End ] == nullptr ) { return false; }
 
-    auto const position { Math3D::vector3 {
+    auto const position { glm::dvec3 {
         0.f,
         Dynamic->MoverParameters->Couplers[ End ].adapter_height,
         ( Dynamic->MoverParameters->Couplers[ End ].adapter_length + Dynamic->MoverParameters->Dim.L * 0.5 ) * ( End == end::front ? 1 : -1 ) } };
@@ -2277,7 +2277,7 @@ opengl_renderer::Render( scene::shape_node const &Shape, bool const Ignorerange 
             case rendermode::shadows:
             case rendermode::cabshadows: {
                 // 'camera' for the light pass is the light source, but we need to draw what the 'real' camera sees
-                distancesquared = Math3D::SquareMagnitude( ( data.area.center - Global.pCamera.Pos ) / (double)Global.ZoomFactor ) / Global.fDistanceFactor;
+                distancesquared = glm::length2( ( data.area.center - Global.pCamera.Pos ) / (double)Global.ZoomFactor ) / Global.fDistanceFactor;
                 break;
             }
             case rendermode::reflections: {
@@ -2696,7 +2696,7 @@ opengl_renderer::Render( TModel3d *Model, material_data const *Material, float c
 }
 
 bool
-opengl_renderer::Render( TModel3d *Model, material_data const *Material, float const Squaredistance, Math3D::vector3 const &Position, glm::vec3 const &Angle ) {
+opengl_renderer::Render( TModel3d *Model, material_data const *Material, float const Squaredistance, glm::dvec3 const &Position, glm::vec3 const &Angle ) {
 
     ::glPushMatrix();
     ::glTranslated( Position.x, Position.y, Position.z );
@@ -3505,7 +3505,7 @@ opengl_renderer::Render_Alpha( TAnimModel *Instance ) {
     switch( m_renderpass.draw_mode ) {
         case rendermode::shadows: {
             // 'camera' for the light pass is the light source, but we need to draw what the 'real' camera sees
-            distancesquared = Math3D::SquareMagnitude( ( Instance->location() - Global.pCamera.Pos ) / (double)Global.ZoomFactor ) / Global.fDistanceFactor;
+            distancesquared = glm::length2( ( Instance->location() - Global.pCamera.Pos ) / (double)Global.ZoomFactor ) / Global.fDistanceFactor;
             break;
         }
         default: {
@@ -3549,7 +3549,7 @@ opengl_renderer::Render_Alpha( TTraction *Traction ) {
     switch( m_renderpass.draw_mode ) {
         case rendermode::shadows: {
             // 'camera' for the light pass is the light source, but we need to draw what the 'real' camera sees
-            distancesquared = Math3D::SquareMagnitude( ( Traction->location() - Global.pCamera.Pos ) / Global.ZoomFactor ) / Global.fDistanceFactor;
+            distancesquared = glm::length2( ( Traction->location() - Global.pCamera.Pos ) / Global.ZoomFactor ) / Global.fDistanceFactor;
             break;
         }
         default: {
@@ -3613,7 +3613,7 @@ opengl_renderer::Render_Alpha( scene::lines_node const &Lines ) {
     switch( m_renderpass.draw_mode ) {
         case rendermode::shadows: {
             // 'camera' for the light pass is the light source, but we need to draw what the 'real' camera sees
-            distancesquared = Math3D::SquareMagnitude( ( data.area.center - Global.pCamera.Pos ) / Global.ZoomFactor ) / Global.fDistanceFactor;
+            distancesquared = glm::length2( ( data.area.center - Global.pCamera.Pos ) / Global.ZoomFactor ) / Global.fDistanceFactor;
             break;
         }
         default: {
@@ -3769,7 +3769,7 @@ opengl_renderer::Render_Alpha( TModel3d *Model, material_data const *Material, f
 }
 
 bool
-opengl_renderer::Render_Alpha( TModel3d *Model, material_data const *Material, float const Squaredistance, Math3D::vector3 const &Position, glm::vec3 const &Angle ) {
+opengl_renderer::Render_Alpha( TModel3d *Model, material_data const *Material, float const Squaredistance, glm::dvec3 const &Position, glm::vec3 const &Angle ) {
 
     ::glPushMatrix();
     ::glTranslated( Position.x, Position.y, Position.z );

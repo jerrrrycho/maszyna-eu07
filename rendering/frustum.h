@@ -47,9 +47,6 @@ public:
     inline
     bool
         point_inside( float3 const &Point ) const { return point_inside( Point.x, Point.y, Point.z ); }
-    inline
-    bool
-        point_inside( Math3D::vector3 const &Point ) const { return point_inside( static_cast<float>( Point.x ), static_cast<float>( Point.y ), static_cast<float>( Point.z ) ); }
     bool
         point_inside( float const X, float const Y, float const Z ) const;
 	// tests if the sphere is in frustum, returns the distance between origin and sphere centre
@@ -62,9 +59,6 @@ public:
     inline
     float
         sphere_inside( float3 const &Center, float const Radius ) const { return sphere_inside( Center.x, Center.y, Center.z, Radius ); }
-    inline
-    float
-        sphere_inside( Math3D::vector3 const &Center, float const Radius ) const { return sphere_inside( static_cast<float>( Center.x ), static_cast<float>( Center.y ), static_cast<float>( Center.z ), Radius ); }
     float
         sphere_inside( float const X, float const Y, float const Z, float const Radius ) const;
 	// returns true if specified cube is inside of the frustum. Size = half of the length
@@ -74,9 +68,6 @@ public:
     inline
     bool
         cube_inside( float3 const &Center, float const Size ) const { return cube_inside( Center.x, Center.y, Center.z, Size ); }
-    inline
-    bool
-        cube_inside( Math3D::vector3 const &Center, float const Size ) const { return cube_inside( static_cast<float>( Center.x ), static_cast<float>( Center.y ), static_cast<float>( Center.z ), Size ); }
     bool
         cube_inside( float const X, float const Y, float const Z, float const Size ) const;
 
