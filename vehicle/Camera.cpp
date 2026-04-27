@@ -172,7 +172,7 @@ void TCamera::Update()
      || ( true == DebugCameraFlag ) ) {
         // free movement position update
         auto movement { Velocity };
-		movement = RotateY(movement, Angle.y);
+		movement = RotateY(movement, (double)Angle.y);
         Pos += movement * 5.0 * deltatime;
     }
     else {
@@ -195,7 +195,7 @@ void TCamera::Update()
             movement.y = -movement.y;
         }
 */
-		movement = RotateY(movement, Angle.y);
+		movement = RotateY(movement, (double)Angle.y);
 
         m_owneroffset += movement * deltatime;
     }
@@ -203,19 +203,16 @@ void TCamera::Update()
 
 bool TCamera::SetMatrix( glm::dmat4 &Matrix ) {
 
-    Matrix = glm::rotate( Matrix, -Angle.z, glm::dvec3( 0.0, 0.0, 1.0 ) ); // po wyłączeniu tego kręci się pojazd, a sceneria nie
-    Matrix = glm::rotate( Matrix, -Angle.x, glm::dvec3( 1.0, 0.0, 0.0 ) );
-    Matrix = glm::rotate( Matrix, -Angle.y, glm::dvec3( 0.0, 1.0, 0.0 ) ); // w zewnętrznym widoku: kierunek patrzenia
+    Matrix = glm::rotate(Matrix, -(double)Angle.x, glm::dvec3(1, 0, 0));
+	Matrix = glm::rotate(Matrix, -(double)Angle.y, glm::dvec3(0, 1, 0)); // w zewnętrznym widoku: kierunek patrzenia
+	Matrix = glm::rotate(Matrix, -(double)Angle.z, glm::dvec3(0, 0, 1)); // po wyłączeniu tego kręci się pojazd, a sceneria nie
 
     if( ( m_owner != nullptr ) && ( false == DebugCameraFlag ) ) {
 
-        Matrix *= glm::lookAt(
-            glm::dvec3{ Pos },
-            glm::dvec3{ LookAt },
-            glm::dvec3{ vUp } );
+        Matrix *= glm::lookAt(Pos, glm::dvec3{ LookAt }, glm::dvec3{ vUp } );
     }
     else {
-        Matrix = glm::translate( Matrix, glm::dvec3{ -Pos } ); // nie zmienia kierunku patrzenia
+        Matrix = glm::translate( Matrix, -Pos ); // nie zmienia kierunku patrzenia
     }
 
     return true;

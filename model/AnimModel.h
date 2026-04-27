@@ -51,8 +51,8 @@ class TAnimContainer : std::enable_shared_from_this<TAnimContainer>
     friend TAnimModel;
 
   private:
-	glm::dvec3 vRotateAngles; // dla obrotów Eulera
-	glm::dvec3 vDesiredAngles;
+	glm::vec3 vRotateAngles; // dla obrotów Eulera
+	glm::vec3 vDesiredAngles;
     double fRotateSpeed;
 	glm::dvec3 vTranslation;
 	glm::dvec3 vTranslateTo;
@@ -81,7 +81,7 @@ class TAnimContainer : std::enable_shared_from_this<TAnimContainer>
     inline
     std::string NameGet() {
         return (pSubModel ? pSubModel->pName : ""); };
-    void SetRotateAnim( glm::dvec3 vNewRotateAngles, double fNewRotateSpeed);
+    void SetRotateAnim( glm::vec3 vNewRotateAngles, double fNewRotateSpeed);
     void SetTranslateAnim( glm::dvec3 vNewTranslate, double fNewSpeed);
     void AnimSetVMD(double fNewSpeed);
     void PrepareModel();

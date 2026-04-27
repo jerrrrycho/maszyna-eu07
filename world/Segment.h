@@ -92,7 +92,7 @@ public:
     Math3D::vector3
         GetPoint(double const fDistance) const;
 */
-	void RaPositionGet(double const fDistance, glm::dvec3 &p, glm::dvec3 &a) const;
+	void RaPositionGet(double const fDistance, glm::dvec3 &p, glm::vec3 &a) const;
 	glm::dvec3 FastGetPoint(double const t) const;
     inline
     glm::dvec3

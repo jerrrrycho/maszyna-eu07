@@ -29,11 +29,11 @@ std::list<std::weak_ptr<TAnimContainer>> TAnimModel::acAnimList;
 
 TAnimContainer::TAnimContainer()
 {
-	vRotateAngles = glm::dvec3(0.0f, 0.0f, 0.0f); // aktualne kąty obrotu
-	vDesiredAngles = glm::dvec3(0.0f, 0.0f, 0.0f); // docelowe kąty obrotu
+	vRotateAngles = glm::vec3(0.0f, 0.0f, 0.0f); // aktualne kąty obrotu
+	vDesiredAngles = glm::vec3(0.0f, 0.0f, 0.0f); // docelowe kąty obrotu
     fRotateSpeed = 0.0;
-	vTranslation = glm::dvec3(0.0f, 0.0f, 0.0f); // aktualne przesunięcie
-    vTranslateTo = glm::dvec3(0.0f, 0.0f, 0.0f); // docelowe przesunięcie
+	vTranslation = glm::dvec3(0.0, 0.0, 0.0); // aktualne przesunięcie
+    vTranslateTo = glm::dvec3(0.0, 0.0, 0.0); // docelowe przesunięcie
     fTranslateSpeed = 0.0;
     fAngleSpeed = 0.0;
     pSubModel = NULL;
@@ -48,7 +48,7 @@ bool TAnimContainer::Init(TSubModel *pNewSubModel)
     return (pSubModel != NULL);
 }
 
-void TAnimContainer::SetRotateAnim(glm::dvec3 vNewRotateAngles, double fNewRotateSpeed)
+void TAnimContainer::SetRotateAnim(glm::vec3 vNewRotateAngles, double fNewRotateSpeed)
 {
     vDesiredAngles = vNewRotateAngles;
     fRotateSpeed = fNewRotateSpeed;

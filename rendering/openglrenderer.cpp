@@ -1041,8 +1041,8 @@ opengl_renderer::setup_pass( renderpass_config &Config, rendermode const Mode, f
             camera.position() = Global.pCamera.Pos - glm::dvec3 { lightvector };
             viewmatrix *= glm::lookAt(
                 camera.position(),
-                glm::dvec3 { Global.pCamera.Pos },
-                glm::dvec3 { 0.f, 1.f, 0.f } );
+                Global.pCamera.Pos,
+                glm::dvec3 { 0, 1, 0 } );
             // projection
             auto const maphalfsize { std::min( 10.f, Config.draw_range * 0.5f ) };
             camera.projection() *=

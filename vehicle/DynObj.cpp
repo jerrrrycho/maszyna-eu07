@@ -1511,11 +1511,11 @@ void TDynamicObject::ABuBogies()
         // [rad]
         // bogieRot[0].z=ABuAcos(Axle0.pPosition-Axle3.pPosition);
         bogieRot[0].z = Axle0.vAngles.z;
-        bogieRot[0] = RadToDeg(modelRot - bogieRot[0]); // mnożenie wektora przez stałą
+		bogieRot[0] = glm::degrees(modelRot - bogieRot[0]); // mnożenie wektora przez stałą
         smBogie[0]->SetRotateXYZ(bogieRot[0]);
         // bogieRot[1].z=ABuAcos(Axle2.pPosition-Axle1.pPosition);
         bogieRot[1].z = Axle1.vAngles.z;
-        bogieRot[1] = RadToDeg(modelRot - bogieRot[1]);
+		bogieRot[1] = glm::degrees(modelRot - bogieRot[1]);
         smBogie[1]->SetRotateXYZ(bogieRot[1]);
     }
 };
@@ -3220,7 +3220,7 @@ bool TDynamicObject::Update(double dt, double dt1)
                             ErrorLog(
                                 "Bad traction: " + MoverParameters->Name
                                 + " lost power for " + to_string( NoVoltTime, 2 ) + " sec. at "
-                                + to_string( glm::dvec3{ vPosition } ) );
+                                + to_string(vPosition) );
                         }
                     }
                 }
@@ -3658,7 +3658,7 @@ bool TDynamicObject::Update(double dt, double dt1)
     glm::dvec3 old_pos = vPosition;
     Move(dDOMoveLen);
 
-	m_future_movement = (glm::dvec3(vPosition) - old_pos) / dt1 * Timer::GetDeltaRenderTime();
+	m_future_movement = (vPosition - old_pos) / dt1 * Timer::GetDeltaRenderTime();
 
     if (!bEnabled) // usuwane pojazdy nie mają toru
     { // pojazd do usunięcia
@@ -8141,7 +8141,7 @@ TDynamicObject::update_shake( double const Timedelta ) {
         }
         shake *= 0.85;
 
-        ShakeState.velocity -= ( shake + ShakeState.velocity * 100.0 ) * ( BaseShake.jolt_scale.x + BaseShake.jolt_scale.y + BaseShake.jolt_scale.z ) / ( 200.0 );
+        ShakeState.velocity -= ( shake + ShakeState.velocity * 100.0 ) * (double)( BaseShake.jolt_scale.x + BaseShake.jolt_scale.y + BaseShake.jolt_scale.z ) / ( 200.0 );
 
         // McZapkie:
         ShakeState.offset += ShakeState.velocity * Timedelta;
@@ -8748,7 +8748,7 @@ vehicle_table::update_traction( TDynamicObject *Vehicle ) {
     auto const vFront = glm::make_vec3( glm::value_ptr(Vehicle->VectorFront()) ); // wektor normalny dla płaszczyzny ruchu pantografu
     auto const vUp = glm::make_vec3( glm::value_ptr(Vehicle->VectorUp()) ); // wektor pionu pudła (pochylony od pionu na przechyłce)
     auto const vLeft = glm::make_vec3( glm::value_ptr(Vehicle->VectorLeft()) ); // wektor odległości w bok (odchylony od poziomu na przechyłce)
-    auto const position = glm::dvec3 { Vehicle->GetPosition() }; // współrzędne środka pojazdu
+    auto const position = Vehicle->GetPosition(); // współrzędne środka pojazdu
 
     for( int pantographindex = 0; pantographindex < Vehicle->iAnimType[ ANIM_PANTS ]; ++pantographindex ) {
         // pętla po pantografach

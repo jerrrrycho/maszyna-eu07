@@ -3106,17 +3106,16 @@ bool opengl33_renderer::Render(TModel3d *Model, material_data const *Material, f
 	return true;
 }
 
-bool opengl33_renderer::Render(TModel3d *Model, material_data const *Material, float const Squaredistance, glm::dvec3 const &Position, glm::vec3 const &A)
+bool opengl33_renderer::Render(TModel3d *Model, material_data const *Material, float const Squaredistance, glm::dvec3 const &Position, glm::vec3 const &Angle)
 {
-	glm::dvec3 Angle(A); // TODO: Why copy?
 	::glPushMatrix();
 	::glTranslated(Position.x, Position.y, Position.z);
 	if (Angle.y != 0.0)
-		::glRotated(Angle.y, 0.0, 1.0, 0.0);
+		::glRotated(Angle.y, 0.f, 1.f, 0.f);
 	if (Angle.x != 0.0)
-		::glRotated(Angle.x, 1.0, 0.0, 0.0);
+		::glRotated(Angle.x, 1.f, 0.f, 0.f);
 	if (Angle.z != 0.0)
-		::glRotated(Angle.z, 0.0, 0.0, 1.0);
+		::glRotated(Angle.z, 0.f, 0.f, 1.f);
 
 	auto const result = Render(Model, Material, Squaredistance);
 
@@ -3981,17 +3980,16 @@ bool opengl33_renderer::Render_Alpha(TModel3d *Model, material_data const *Mater
 	return true;
 }
 
-bool opengl33_renderer::Render_Alpha(TModel3d *Model, material_data const *Material, float const Squaredistance, glm::dvec3 const &Position, glm::vec3 const &A)
+bool opengl33_renderer::Render_Alpha(TModel3d *Model, material_data const *Material, float const Squaredistance, glm::dvec3 const &Position, glm::vec3 const &Angle)
 {
-	glm::dvec3 Angle(A); // TODO: Why copy?
 	::glPushMatrix();
 	::glTranslated(Position.x, Position.y, Position.z);
 	if (Angle.y != 0.0)
-		::glRotated(Angle.y, 0.0, 1.0, 0.0);
+		::glRotated(Angle.y, 0.f, 1.f, 0.f);
 	if (Angle.x != 0.0)
-		::glRotated(Angle.x, 1.0, 0.0, 0.0);
+		::glRotated(Angle.x, 1.f, 0.f, 0.f);
 	if (Angle.z != 0.0)
-		::glRotated(Angle.z, 0.0, 0.0, 1.0);
+		::glRotated(Angle.z, 0.f, 0.f, 1.f);
 
 	auto const result = Render_Alpha(Model, Material, Squaredistance); // position is effectively camera offset
 

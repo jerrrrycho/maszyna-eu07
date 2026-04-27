@@ -45,7 +45,7 @@ public:
 // members
     double fOffsetH = 0.0; // Ra: odległość środka osi od osi toru (dla samochodów) - użyć do wężykowania
 	glm::dvec3 pPosition; // współrzędne XYZ w układzie scenerii
-	glm::dvec3 vAngles; // x:przechyłka, y:pochylenie, z:kierunek w planie (w radianach)
+	glm::vec3 vAngles; // x:przechyłka, y:pochylenie, z:kierunek w planie (w radianach)
   private:
 // methods
     bool ComputatePosition(); // przeliczenie pozycji na torze

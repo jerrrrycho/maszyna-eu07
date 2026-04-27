@@ -387,7 +387,7 @@ openal_renderer::update( double const Deltatime ) {
     ::alListenerfv( AL_ORIENTATION, reinterpret_cast<ALfloat const *>( orientation ) );
     // velocity
     if( Deltatime > 0 ) {
-        auto cameramove { glm::dvec3{ cameraposition - cached_camerapos} };
+        auto cameramove { cameraposition - cached_camerapos };
         cached_camerapos = cameraposition;
         // intercept sudden user-induced camera jumps...
         // ...from free fly mode change

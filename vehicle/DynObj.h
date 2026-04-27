@@ -204,7 +204,7 @@ public:
     TTrackFollower Axle1; // oś z tyłu (od sprzęgu 1)
     int iAxleFirst; // numer pierwszej osi w kierunku ruchu (oś wiążąca pojazd z torem i wyzwalająca eventy)
     float fAxleDist; // rozstaw wózków albo osi do liczenia proporcji zacienienia
-	glm::dvec3 modelRot; // obrot pudła względem świata - do przeanalizowania, czy potrzebne!!!
+	glm::vec3 modelRot; // obrot pudła względem świata - do przeanalizowania, czy potrzebne!!!
     TDynamicObject * ABuFindNearestObject(glm::vec3 pos, TTrack *Track, TDynamicObject *MyPointer, int &CouplNr );
     
     glm::dvec3 m_future_movement;
@@ -304,7 +304,7 @@ private:
     void toggle_lights(); // switch light levels for registered interior sections
   private: // Ra: ciąg dalszy animacji, dopiero do ogarnięcia
     // ABuWozki 060504
-    glm::dvec3 bogieRot[2]; // Obroty wozkow w/m korpusu
+    glm::vec3 bogieRot[2]; // Obroty wozkow w/m korpusu
     TSubModel *smBogie[2]; // Wyszukiwanie max 2 wozkow
     TSubModel *smWahacze[4]; // wahacze (np. nogi, dźwignia w drezynie)
     TSubModel *smBrakeMode; // Ra 15-01: nastawa hamulca też
@@ -834,8 +834,8 @@ public:
     std::pair<double, double> shake_angles() const;
 // members
     struct baseshake_config {
-        glm::dvec3 angle_scale { 0.05, 0.0, 0.1 }; // roll, yaw, pitch
-		glm::dvec3 jolt_scale{0.2, 0.2, 0.1};
+        glm::vec3 angle_scale { 0.05, 0.0, 0.1 }; // roll, yaw, pitch
+		glm::vec3 jolt_scale{0.2, 0.2, 0.1};
         double jolt_limit { 2.0f };
     } BaseShake;
     struct engineshake_config {

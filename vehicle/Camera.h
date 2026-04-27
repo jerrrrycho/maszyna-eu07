@@ -25,7 +25,7 @@ class TCamera {
     bool SetMatrix(glm::dmat4 &Matrix);
     void RaLook();
 
-    glm::dvec3 Angle; // pitch, yaw, roll
+    glm::vec3 Angle; // pitch, yaw, roll
 	glm::dvec3 Pos; // współrzędne obserwatora
 	glm::vec3 LookAt; // współrzędne punktu, na który ma patrzeć
 	glm::vec3 vUp;
@@ -36,7 +36,7 @@ class TCamera {
 
 private:
     glm::dvec3 m_moverate;
-    glm::dvec3 m_rotationoffsets; // requested changes to pitch, yaw and roll
+    glm::vec3 m_rotationoffsets; // requested changes to pitch, yaw and roll
 
 };
 

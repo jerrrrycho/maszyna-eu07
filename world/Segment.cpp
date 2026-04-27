@@ -338,7 +338,7 @@ Math3D::vector3 TSegment::GetPoint(double const fDistance) const
 };
 */
 // ustalenie pozycji osi na torze, przechyłki, pochylenia i kierunku jazdy
-void TSegment::RaPositionGet(double const fDistance, glm::dvec3 &p, glm::dvec3 &a) const {
+void TSegment::RaPositionGet(double const fDistance, glm::dvec3 &p, glm::vec3 &a) const {
     if (bCurve) {
         // można by wprowadzić uproszczony wzór dla okręgów płaskich
         auto const t = GetTFromS(fDistance); // aproksymacja dystansu na krzywej Beziera na parametr (t)
