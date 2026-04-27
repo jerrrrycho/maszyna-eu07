@@ -450,6 +450,7 @@ TTrain::commandhandler_map const TTrain::m_commandhandlers = {
     { user_command::radiostopenable, &TTrain::OnCommand_radiostopenable },
     { user_command::radiostopdisable, &TTrain::OnCommand_radiostopdisable },
     { user_command::radiostoptest, &TTrain::OnCommand_radiostoptest },
+	{ user_command::radiocall1send, &TTrain::OnCommand_radiocall1send },
     { user_command::radiocall3send, &TTrain::OnCommand_radiocall3send },
 	{ user_command::radiovolumeincrease, &TTrain::OnCommand_radiovolumeincrease },
 	{ user_command::radiovolumedecrease, &TTrain::OnCommand_radiovolumedecrease },
@@ -6917,6 +6918,23 @@ void TTrain::OnCommand_radiostoptest( TTrain *Train, command_data const &Command
     }
 }
 
+void TTrain::OnCommand_radiocall1send( TTrain *Train, command_data const &Command )
+{
+	if( Command.action == GLFW_PRESS ) {
+		if( ( Train->RadioChannel() != 10 )
+		 && ( true == Train->mvOccupied->Radio )
+		 && ( Train->mvOccupied->Power24vIsAvailable || Train->mvOccupied->Power110vIsAvailable) ) {
+			simulation::Events.queue_receivers( radio_message::call1, Train->Dynamic()->GetPosition() );
+		 }
+		// visual feedback
+		Train->ggRadioCall1.UpdateValue( 1.0 );
+	}
+	else if( Command.action == GLFW_RELEASE ) {
+		// visual feedback
+		Train->ggRadioCall1.UpdateValue( 0.0 );
+	}
+}
+
 void TTrain::OnCommand_radiocall3send( TTrain *Train, command_data const &Command ) {
 
     if( Command.action == GLFW_PRESS ) {
@@ -8343,6 +8361,7 @@ bool TTrain::Update( double const Deltatime )
     ggRadioChannelNext.Update();
     ggRadioStop.Update();
     ggRadioTest.Update();
+    ggRadioCall1.Update();
     ggRadioCall3.Update();
 	ggRadioVolumeSelector.Update();
 	ggRadioVolumePrevious.Update();
@@ -9861,6 +9880,7 @@ void TTrain::clear_cab_controls()
     ggRadioChannelNext.Clear();
     ggRadioStop.Clear();
     ggRadioTest.Clear();
+    ggRadioCall1.Clear();
     ggRadioCall3.Clear();
 	ggRadioVolumeSelector.Clear();
 	ggRadioVolumePrevious.Clear();
@@ -10668,6 +10688,7 @@ bool TTrain::initialize_gauge(cParser &Parser, std::string const &Label, int con
         { "radiochannelnext_sw:", ggRadioChannelNext },
         { "radiostop_sw:", ggRadioStop },
         { "radiotest_sw:", ggRadioTest },
+        { "radiocall1_sw:", ggRadioCall1 },
         { "radiocall3_sw:", ggRadioCall3 },
 		{ "radiovolume_sw:", ggRadioVolumeSelector },
 		{ "radiovolumeprev_sw:", ggRadioVolumePrevious },

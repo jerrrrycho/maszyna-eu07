@@ -42,6 +42,10 @@ vec3 filmic(vec3 x)
 
 vec4 tonemap(vec4 x)
 {
-//	return FBOUT(vec4(ACESFilm(x.rgb), x.a));
-	return FBOUT(vec4(reinhard(x.rgb), x.a));
+	// Use ACES Filmic by default. Reinhard above kept for reference, but
+	// with pureWhite=1.0 it collapses to identity (L*(1+L)/(1+L) = L) and
+	// just clips HDR>1.0 at the framebuffer -> washed-out / burnt look.
+	// ACES gives a smooth highlight shoulder + slight toe contrast.
+	return FBOUT(vec4(ACESFilm(x.rgb), x.a));
+	//return FBOUT(vec4(reinhard(x.rgb), x.a));
 }
