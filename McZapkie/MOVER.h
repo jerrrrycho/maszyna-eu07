@@ -9,7 +9,7 @@ http://mozilla.org/MPL/2.0/.
 
 #pragma once
 //---------------------------------------------------------------------------
-//Q: 20160805 - odlaczenie pliku fizyki .pas od kompilacji
+// Q: 20160805 - odlaczenie pliku fizyki .pas od kompilacji
 #include <map>
 #include "hamulce.h"
 #include "scripting/ladderlogic.h"
@@ -18,7 +18,6 @@ MaSzyna EU07 locomotive simulator
 Copyright (C) 2001-2004  Maciej Czapkiewicz and others
 
 */
-
 
 /*
 (C) McZapkie v.2004.02
@@ -81,483 +80,923 @@ zwiekszenie nacisku przy duzych predkosciach w hamulcach Oerlikona
 #include "utilities/dumb3d.h"
 #include "utilities/utilities.h"
 
+/// <summary>Global counter incremented when a string-to-numeric conversion fails during config parsing.</summary>
 extern int ConversionError;
 
-const double Steel2Steel_friction = 0.15;      //tarcie statyczne
-const double g = 9.81;                     //przyspieszenie ziemskie
-const double SandSpeed = 0.1;              //ile kg/s}
+/// <summary>Static friction coefficient for steel-on-steel contact (used for adhesion at standstill).</summary>
+const double Steel2Steel_friction = 0.15; // tarcie statyczne
+/// <summary>Earth gravitational acceleration [m/s^2].</summary>
+const double g = 9.81; // przyspieszenie ziemskie
+/// <summary>Sand consumption rate when sanding is active [kg/s].</summary>
+const double SandSpeed = 0.1; // ile kg/s}
+/// <summary>2*pi shortcut.</summary>
 const double Pirazy2 = 6.2831853071794f;
 
 //-- var, const, procedure ---------------------------------------------------
+/// <summary>Truthy alias used by CheckLocomotiveParameters() to ignore a check failure.</summary>
 static bool const Go = true;
-static bool const Hold = false;                 /*dla CheckLocomotiveParameters*/
-static int const ResArraySize = 64;            /*dla silnikow elektrycznych*/
+/// <summary>Falsy alias used by CheckLocomotiveParameters() to abort on a check failure.</summary>
+static bool const Hold = false; /*dla CheckLocomotiveParameters*/
+/// <summary>Maximum number of resistor / scheme entries for electric motor traction.</summary>
+static int const ResArraySize = 64; /*dla silnikow elektrycznych*/
+/// <summary>Maximum number of motor-parameter table entries (gear stages).</summary>
 static int const MotorParametersArraySize = 10;
-static int const maxcc = 4;                    /*max. ilosc odbierakow pradu*/
-//static int const LocalBrakePosNo = 10;         /*ilosc nastaw hamulca pomocniczego*/
-//static int const MainBrakeMaxPos = 10;          /*max. ilosc nastaw hamulca zasadniczego*/
-static int const ManualBrakePosNo = 20;        /*ilosc nastaw hamulca recznego*/
+/// <summary>Maximum number of pantograph current collectors per vehicle.</summary>
+static int const maxcc = 4; /*max. ilosc odbierakow pradu*/
+// static int const LocalBrakePosNo = 10;         /*ilosc nastaw hamulca pomocniczego*/
+// static int const MainBrakeMaxPos = 10;          /*max. ilosc nastaw hamulca zasadniczego*/
+/// <summary>Number of positions on the manual (parking) brake handle.</summary>
+static int const ManualBrakePosNo = 20; /*ilosc nastaw hamulca recznego*/
+/// <summary>Number of positions on the lights selector switch.</summary>
 static int const LightsSwitchPosNo = 16;
-static int const UniversalCtrlArraySize = 32;            /*max liczba pozycji uniwersalnego nastawnika*/
+/// <summary>Maximum number of positions of the universal (auxiliary) controller.</summary>
+static int const UniversalCtrlArraySize = 32; /*max liczba pozycji uniwersalnego nastawnika*/
 
 /*uszkodzenia toru*/
+/// <summary>Track damage flag: rail wear.</summary>
 static int const dtrack_railwear = 2;
+/// <summary>Track damage flag: free / loose rail.</summary>
 static int const dtrack_freerail = 4;
+/// <summary>Track damage flag: thin (worn-out) rail.</summary>
 static int const dtrack_thinrail = 8;
+/// <summary>Track damage flag: bent rail.</summary>
 static int const dtrack_railbend = 16;
+/// <summary>Track damage flag: vegetation overgrowth.</summary>
 static int const dtrack_plants = 32;
+/// <summary>Track damage flag: track impassable for movement.</summary>
 static int const dtrack_nomove = 64;
+/// <summary>Track damage flag: rails missing entirely.</summary>
 static int const dtrack_norail = 128;
 
 /*uszkodzenia taboru*/
-static int const dtrain_thinwheel = 1;     /*dla lokomotyw*/
-static int const dtrain_loadshift = 1;     /*dla wagonow*/
+/// <summary>Vehicle damage flag: thin wheel (locomotives).</summary>
+static int const dtrain_thinwheel = 1; /*dla lokomotyw*/
+/// <summary>Vehicle damage flag: shifted load (wagons).</summary>
+static int const dtrain_loadshift = 1; /*dla wagonow*/
+/// <summary>Vehicle damage flag: wheel wear.</summary>
 static int const dtrain_wheelwear = 2;
+/// <summary>Vehicle damage flag: bearing failure.</summary>
 static int const dtrain_bearing = 4;
+/// <summary>Vehicle damage flag: coupling damage.</summary>
 static int const dtrain_coupling = 8;
-static int const dtrain_ventilator = 16;   /*dla lokomotywy el.*/
-static int const dtrain_loaddamage = 16;   /*dla wagonow*/
-static int const dtrain_engine = 32;       /*dla lokomotyw*/
-static int const dtrain_loaddestroyed = 32;/*dla wagonow*/
+/// <summary>Vehicle damage flag: ventilator failure (electric locomotive).</summary>
+static int const dtrain_ventilator = 16; /*dla lokomotywy el.*/
+/// <summary>Vehicle damage flag: load damage (wagons).</summary>
+static int const dtrain_loaddamage = 16; /*dla wagonow*/
+/// <summary>Vehicle damage flag: engine failure (locomotives).</summary>
+static int const dtrain_engine = 32; /*dla lokomotyw*/
+/// <summary>Vehicle damage flag: load destroyed (wagons).</summary>
+static int const dtrain_loaddestroyed = 32; /*dla wagonow*/
+/// <summary>Vehicle damage flag: axle damage.</summary>
 static int const dtrain_axle = 64;
-static int const dtrain_out = 128;         /*wykolejenie*/
-static int const dtrain_pantograph = 256;	/*polamanie pantografu*/
+/// <summary>Vehicle damage flag: derailment.</summary>
+static int const dtrain_out = 128; /*wykolejenie*/
+/// <summary>Vehicle damage flag: broken pantograph.</summary>
+static int const dtrain_pantograph = 256; /*polamanie pantografu*/
 
-/*przyczyny wykolejenia*/
-enum DerailReason {
+/// <summary>Reason for a derailment event.</summary>
+enum DerailReason
+{
+	/// <summary>No derailment.</summary>
 	NONE = 0,
-	END_OF_TRACK = 1,      // Ra: powód wykolejenia: brak szyn
-	TOO_HIGH_SPEED = 2,    // Ra: powód wykolejenia: przewrócony na łuku
-	GAUGE_MISMATCH = 3,    // Ra: powód wykolejenia: za szeroki tor
-	WRONG_TRACK_TYPE = 4,  // Ra: powód wykolejenia: nieodpowiednia trajektoria
-	COLLISION = 5,         //     powód wykolejenia: zderzenie z innym pojazdem
+	/// <summary>End of track reached.</summary>
+	END_OF_TRACK = 1, // Ra: powód wykolejenia: brak szyn
+	/// <summary>Speed too high for curve (overturn).</summary>
+	TOO_HIGH_SPEED = 2, // Ra: powód wykolejenia: przewrócony na łuku
+	/// <summary>Track gauge does not match wheelset gauge.</summary>
+	GAUGE_MISMATCH = 3, // Ra: powód wykolejenia: za szeroki tor
+	/// <summary>Track type incompatible with this vehicle.</summary>
+	WRONG_TRACK_TYPE = 4, // Ra: powód wykolejenia: nieodpowiednia trajektoria
+	/// <summary>Collision with another vehicle.</summary>
+	COLLISION = 5, //     powód wykolejenia: zderzenie z innym pojazdem
 };
 
 /*wagi prawdopodobienstwa dla funkcji FuzzyLogic*/
-#define p_elengproblem  (1e-02)
-#define p_elengdamage  (1e-01)
-#define p_coupldmg  (2e-03)
-#define p_derail  (1e-03)
-#define p_accn  (1e-01)
-#define p_slippdmg  (1e-03)
+/// <summary>Fuzzy-logic probability weight: electric engine general problem.</summary>
+#define p_elengproblem (1e-02)
+/// <summary>Fuzzy-logic probability weight: electric engine damage.</summary>
+#define p_elengdamage (1e-01)
+/// <summary>Fuzzy-logic probability weight: coupler damage.</summary>
+#define p_coupldmg (2e-03)
+/// <summary>Fuzzy-logic probability weight: derailment.</summary>
+#define p_derail (1e-03)
+/// <summary>Fuzzy-logic probability weight: acceleration-related event.</summary>
+#define p_accn (1e-01)
+/// <summary>Fuzzy-logic probability weight: damage caused by wheel slip.</summary>
+#define p_slippdmg (1e-03)
 
-										   /*typ sprzegu*/
-static int const ctrain_virtual = 0;        //gdy pojazdy na tym samym torze się widzą wzajemnie
-static int const ctrain_coupler = 1;        //sprzeg fizyczny
-static int const ctrain_pneumatic = 2;      //przewody hamulcowe
-static int const ctrain_controll = 4;       //przewody sterujące (ukrotnienie)
-static int const ctrain_power = 8;          //przewody zasilające (WN)
-static int const ctrain_passenger = 16;     //mostek przejściowy
-static int const ctrain_scndpneumatic = 32; //przewody 8 atm (żółte; zasilanie powietrzem)
-static int const ctrain_heating = 64;       //przewody ogrzewania WN
-static int const ctrain_depot = 128;        //nie rozłączalny podczas zwykłych manewrów (międzyczłonowy), we wpisie wartość ujemna
-// vehicle sides; exclusive
-enum end {
-    front = 0,
-    rear = 1
-};
-
-enum side {
-    right = 0,
-    left = 1
-};
-
-// possible coupling types; can be combined
-enum coupling {
-    faux = 0x0,
-    coupler = 0x1,
-    brakehose = 0x2,
-    control = 0x4,
-    highvoltage = 0x8,
-    gangway = 0x10,
-    mainhose = 0x20,
-    heating = 0x40,
-    permanent = 0x80,
-    power24v = 0x100,
-    power110v = 0x200,
-    power3x400v = 0x400,
-//    uic = 0x1000,
-};
-// possible effect ranges for control commands; exclusive
-enum class range_t {
-    local,
-    unit,
-    consist
-};
-// possible settings of enable/disable input pair; exclusive
-enum class operation_t {
-    none = 0,
-    enable,
-    disable,
-    enable_on,
-    enable_off,
-    disable_on,
-    disable_off,
-};
-// start method for devices; exclusive
-enum class start_t {
-    disabled,
-    manual,
-    automatic,
-    manualwithautofallback,
-    converter,
-    battery,
-    direction
-};
-// recognized vehicle light locations and types; can be combined
-enum light {
-
-    headlight_left  = ( 1 << 0 ),
-    redmarker_left  = ( 1 << 1 ),
-    headlight_upper = ( 1 << 2 ),
-// TBD, TODO: redmarker_upper support?
-    headlight_right = ( 1 << 4 ),
-    redmarker_right = ( 1 << 5 ),
-    rearendsignals  = ( 1 << 6 ),
-    auxiliary_left  = ( 1 << 7 ),
-    auxiliary_right = ( 1 << 8 ),
-	highbeamlight_left = ( 1 << 9 ),
-	highbeamlight_right = ( 1 << 10 )
+/*typ sprzegu*/
+/// <summary>Coupling type: virtual — vehicles share a track and are aware of each other.</summary>
+static int const ctrain_virtual = 0; // gdy pojazdy na tym samym torze się widzą wzajemnie
+/// <summary>Coupling type: physical coupler.</summary>
+static int const ctrain_coupler = 1; // sprzeg fizyczny
+/// <summary>Coupling type: pneumatic brake hose.</summary>
+static int const ctrain_pneumatic = 2; // przewody hamulcowe
+/// <summary>Coupling type: control cable (multiple-unit).</summary>
+static int const ctrain_controll = 4; // przewody sterujące (ukrotnienie)
+/// <summary>Coupling type: high-voltage power cable.</summary>
+static int const ctrain_power = 8; // przewody zasilające (WN)
+/// <summary>Coupling type: passenger gangway.</summary>
+static int const ctrain_passenger = 16; // mostek przejściowy
+/// <summary>Coupling type: secondary 8 atm pneumatic line (yellow, main air).</summary>
+static int const ctrain_scndpneumatic = 32; // przewody 8 atm (żółte; zasilanie powietrzem)
+/// <summary>Coupling type: high-voltage train heating cable.</summary>
+static int const ctrain_heating = 64; // przewody ogrzewania WN
+/// <summary>Coupling type: permanent (inter-section) — not separable during ordinary shunting; encoded as negative in config files.</summary>
+static int const ctrain_depot = 128; // nie rozłączalny podczas zwykłych manewrów (międzyczłonowy), we wpisie wartość ujemna
+/// <summary>Vehicle ends — front or rear (mutually exclusive).</summary>
+enum end
+{
+	/// <summary>Front end.</summary>
+	front = 0,
+	/// <summary>Rear end.</summary>
+	rear = 1
 };
 
-// door operation methods; exclusive
-enum control_t {
-    passenger, // local, opened/closed for duration of loading
-    driver, // remote, operated by the driver
-    autonomous, // local, closed when vehicle moves and/or after timeout
-    conductor, // remote, operated by the conductor
-    mixed // primary manual but answers also to remote control
+/// <summary>Vehicle sides — right or left (mutually exclusive).</summary>
+enum side
+{
+	/// <summary>Right side.</summary>
+	right = 0,
+	/// <summary>Left side.</summary>
+	left = 1
 };
-											/*typ hamulca elektrodynamicznego*/
+
+/// <summary>Bit flags representing the kind of physical/logical connections in a coupling. Combinable.</summary>
+enum coupling
+{
+	/// <summary>No coupling (virtual / not connected).</summary>
+	faux = 0x0,
+	/// <summary>Mechanical coupler.</summary>
+	coupler = 0x1,
+	/// <summary>Pneumatic brake hose (PG).</summary>
+	brakehose = 0x2,
+	/// <summary>Control cable (multiple-unit).</summary>
+	control = 0x4,
+	/// <summary>High-voltage cable (traction supply).</summary>
+	highvoltage = 0x8,
+	/// <summary>Passenger gangway.</summary>
+	gangway = 0x10,
+	/// <summary>Main air (8 atm) line — secondary pneumatic supply.</summary>
+	mainhose = 0x20,
+	/// <summary>Train heating cable.</summary>
+	heating = 0x40,
+	/// <summary>Permanent (non-separable) coupling.</summary>
+	permanent = 0x80,
+	/// <summary>24 V auxiliary power cable.</summary>
+	power24v = 0x100,
+	/// <summary>110 V auxiliary power cable.</summary>
+	power110v = 0x200,
+	/// <summary>3-phase 400 V auxiliary power cable.</summary>
+	power3x400v = 0x400,
+	//    uic = 0x1000,
+};
+/// <summary>Range of effect for a control command (mutually exclusive).</summary>
+enum class range_t
+{
+	/// <summary>Affects only this vehicle.</summary>
+	local,
+	/// <summary>Affects this multiple-unit (vehicles permanently coupled into a unit).</summary>
+	unit,
+	/// <summary>Affects the entire consist.</summary>
+	consist
+};
+/// <summary>Possible settings for an enable/disable input pair (mutually exclusive).</summary>
+enum class operation_t
+{
+	/// <summary>No input.</summary>
+	none = 0,
+	/// <summary>Enable input held active.</summary>
+	enable,
+	/// <summary>Disable input held active.</summary>
+	disable,
+	/// <summary>Enable button press transition (rising edge).</summary>
+	enable_on,
+	/// <summary>Enable button release transition.</summary>
+	enable_off,
+	/// <summary>Disable button press transition.</summary>
+	disable_on,
+	/// <summary>Disable button release transition.</summary>
+	disable_off,
+};
+/// <summary>Auto-start method for ancillary devices (mutually exclusive).</summary>
+enum class start_t
+{
+	/// <summary>Device cannot be started.</summary>
+	disabled,
+	/// <summary>Manual start only.</summary>
+	manual,
+	/// <summary>Starts automatically.</summary>
+	automatic,
+	/// <summary>Manual start with automatic fallback.</summary>
+	manualwithautofallback,
+	/// <summary>Driven by the converter state.</summary>
+	converter,
+	/// <summary>Driven by the battery state.</summary>
+	battery,
+	/// <summary>Driven by direction selector state.</summary>
+	direction
+};
+/// <summary>Bit flags representing vehicle external lights (positions and types). Combinable.</summary>
+enum light
+{
+
+	/// <summary>Headlight, left.</summary>
+	headlight_left = (1 << 0),
+	/// <summary>Red marker, left.</summary>
+	redmarker_left = (1 << 1),
+	/// <summary>Headlight, upper centre.</summary>
+	headlight_upper = (1 << 2),
+	// TBD, TODO: redmarker_upper support?
+	/// <summary>Headlight, right.</summary>
+	headlight_right = (1 << 4),
+	/// <summary>Red marker, right.</summary>
+	redmarker_right = (1 << 5),
+	/// <summary>Rear-end markers (combined).</summary>
+	rearendsignals = (1 << 6),
+	/// <summary>Auxiliary light, left (e.g. ditch light).</summary>
+	auxiliary_left = (1 << 7),
+	/// <summary>Auxiliary light, right.</summary>
+	auxiliary_right = (1 << 8),
+	/// <summary>High-beam headlight, left.</summary>
+	highbeamlight_left = (1 << 9),
+	/// <summary>High-beam headlight, right.</summary>
+	highbeamlight_right = (1 << 10)
+};
+
+/// <summary>Door operation method (who controls them and how) — mutually exclusive.</summary>
+enum control_t
+{
+	/// <summary>Local; passengers operate manually, doors open/close for the duration of loading.</summary>
+	passenger, // local, opened/closed for duration of loading
+	/// <summary>Remote; driver-operated.</summary>
+	driver, // remote, operated by the driver
+	/// <summary>Local autonomous; close when the vehicle moves and/or after a timeout.</summary>
+	autonomous, // local, closed when vehicle moves and/or after timeout
+	/// <summary>Remote; conductor-operated.</summary>
+	conductor, // remote, operated by the conductor
+	/// <summary>Primarily manual but also responds to remote control.</summary>
+	mixed // primary manual but answers also to remote control
+};
+/*typ hamulca elektrodynamicznego*/
+/// <summary>Electrodynamic-brake type: no ED brake.</summary>
 static int const dbrake_none = 0;
+/// <summary>Electrodynamic-brake type: passive (always on while moving).</summary>
 static int const dbrake_passive = 1;
+/// <summary>Electrodynamic-brake type: switchable (driver toggles).</summary>
 static int const dbrake_switch = 2;
+/// <summary>Electrodynamic-brake type: reversal (engaged via reverser).</summary>
 static int const dbrake_reversal = 4;
+/// <summary>Electrodynamic-brake type: automatic (engages from main brake).</summary>
 static int const dbrake_automatic = 8;
 
 /*dzwieki*/
-enum sound {
-    none,
-    loud = 1 << 0,
-    couplerstretch = 1 << 1,
-    bufferclash = 1 << 2,
-    relay = 1 << 3,
-    parallel = 1 << 4,
-    shuntfield = 1 << 5,
-    pneumatic = 1 << 6,
-    detach = 1 << 7,
-    attachcoupler = 1 << 8,
-    attachbrakehose = 1 << 9,
-    attachmainhose = 1 << 10,
-    attachcontrol = 1 << 11,
-    attachgangway = 1 << 12,
-    attachheating = 1 << 13,
-    attachadapter = 1 << 14,
-    removeadapter = 1 << 15,
-    doorpermit = 1 << 16,
+/// <summary>Bit flags identifying sound events emitted by a vehicle. Combinable.</summary>
+enum sound
+{
+	/// <summary>No sound event.</summary>
+	none,
+	/// <summary>Generic "loud" event flag (e.g. impact / forced action).</summary>
+	loud = 1 << 0,
+	/// <summary>Coupler stretching to its limit.</summary>
+	couplerstretch = 1 << 1,
+	/// <summary>Buffer clash (vehicles colliding).</summary>
+	bufferclash = 1 << 2,
+	/// <summary>Contactor / relay clicking.</summary>
+	relay = 1 << 3,
+	/// <summary>Series-parallel switch operating.</summary>
+	parallel = 1 << 4,
+	/// <summary>Field-shunt contactor operating.</summary>
+	shuntfield = 1 << 5,
+	/// <summary>Generic pneumatic event.</summary>
+	pneumatic = 1 << 6,
+	/// <summary>Coupling detached.</summary>
+	detach = 1 << 7,
+	/// <summary>Mechanical coupler attached.</summary>
+	attachcoupler = 1 << 8,
+	/// <summary>Brake hose attached.</summary>
+	attachbrakehose = 1 << 9,
+	/// <summary>Main air hose attached.</summary>
+	attachmainhose = 1 << 10,
+	/// <summary>Control cable attached.</summary>
+	attachcontrol = 1 << 11,
+	/// <summary>Gangway attached.</summary>
+	attachgangway = 1 << 12,
+	/// <summary>Heating cable attached.</summary>
+	attachheating = 1 << 13,
+	/// <summary>Adapter piece attached to coupler.</summary>
+	attachadapter = 1 << 14,
+	/// <summary>Adapter piece removed from coupler.</summary>
+	removeadapter = 1 << 15,
+	/// <summary>Door-open permission signalling.</summary>
+	doorpermit = 1 << 16,
 };
 
-// customizable reset button
-enum relay_t {
-    maincircuitground = 1 << 0,
-    auxiliarycircuitground = 1 << 1,
-    tractionnmotoroverload = 1 << 2,
-    primaryconverteroverload = 1 << 3,
-    secondaryconverteroverload = 1 << 4,
-    ventillatoroverload = 1 << 5,
-    heatingoverload = 1 << 6,
-    electrodynamicbrakesoverload = 1 << 7,
+/// <summary>Bit flags for the customizable reset button — which protective relay it resets. Combinable.</summary>
+enum relay_t
+{
+	/// <summary>Main circuit ground-fault relay.</summary>
+	maincircuitground = 1 << 0,
+	/// <summary>Auxiliary circuit ground-fault relay.</summary>
+	auxiliarycircuitground = 1 << 1,
+	/// <summary>Traction motor overload relay.</summary>
+	tractionnmotoroverload = 1 << 2,
+	/// <summary>Primary converter overload relay.</summary>
+	primaryconverteroverload = 1 << 3,
+	/// <summary>Secondary converter overload relay.</summary>
+	secondaryconverteroverload = 1 << 4,
+	/// <summary>Ventilator overload relay.</summary>
+	ventillatoroverload = 1 << 5,
+	/// <summary>Heating overload relay.</summary>
+	heatingoverload = 1 << 6,
+	/// <summary>Electrodynamic-brake overload relay.</summary>
+	electrodynamicbrakesoverload = 1 << 7,
 };
 
-// functions during activation/deactivation
-enum activation {
+/// <summary>Bit flags for actions triggered on cab activation / deactivation. Combinable.</summary>
+enum activation
+{
+	/// <summary>Engage the emergency brake.</summary>
 	emergencybrake = 1 << 0,
+	/// <summary>Operate cab mirrors.</summary>
 	mirrors = 1 << 1,
+	/// <summary>Raise the pantographs.</summary>
 	pantographsup = 1 << 2,
+	/// <summary>Switch on red end-of-train markers.</summary>
 	redmarkers = 1 << 3,
+	/// <summary>Set door-open permit.</summary>
 	doorpermition = 1 << 4,
+	/// <summary>Engage the spring brake.</summary>
 	springbrakeon = 1 << 5,
+	/// <summary>Release the spring brake.</summary>
 	springbrakeoff = 1 << 6,
+	/// <summary>Place the reverser in neutral.</summary>
 	neutraldirection = 1 << 7,
 };
 
-//szczególne typy pojazdów (inna obsługa) dla zmiennej TrainType
-//zamienione na flagi bitowe, aby szybko wybierać grupę (np. EZT+SZT)
-// TODO: convert to enums, they're used as specific checks anyway
+// szczególne typy pojazdów (inna obsługa) dla zmiennej TrainType
+// zamienione na flagi bitowe, aby szybko wybierać grupę (np. EZT+SZT)
+//  TODO: convert to enums, they're used as specific checks anyway
+/// <summary>Vehicle type flag: default (no special handling).</summary>
 static int const dt_Default = 0;
+/// <summary>Vehicle type flag: EZT (electric multiple unit).</summary>
 static int const dt_EZT = 1;
+/// <summary>Vehicle type flag: ET41 locomotive.</summary>
 static int const dt_ET41 = 2;
+/// <summary>Vehicle type flag: ET42 locomotive.</summary>
 static int const dt_ET42 = 4;
+/// <summary>Vehicle type flag: pseudo-diesel (electric drivetrain with diesel input model).</summary>
 static int const dt_PseudoDiesel = 8;
-static int const dt_ET22 = 0x10; //używane od Megapacka
-static int const dt_SN61 = 0x20; //nie używane w warunkach, ale ustawiane z CHK
+/// <summary>Vehicle type flag: ET22 locomotive (added in Megapack).</summary>
+static int const dt_ET22 = 0x10; // używane od Megapacka
+/// <summary>Vehicle type flag: SN61 (set from CHK only, not used in conditions).</summary>
+static int const dt_SN61 = 0x20; // nie używane w warunkach, ale ustawiane z CHK
+/// <summary>Vehicle type flag: EP05 locomotive.</summary>
 static int const dt_EP05 = 0x40;
+/// <summary>Vehicle type flag: ET40 locomotive.</summary>
 static int const dt_ET40 = 0x80;
+/// <summary>Vehicle type flag: ŠKODA 181 locomotive.</summary>
 static int const dt_181 = 0x100;
+/// <summary>Vehicle type flag: DMU (diesel multiple unit).</summary>
 static int const dt_DMU = 0x200;
 
-//stałe dla asynchronów
+// stałe dla asynchronów
+/// <summary>EIM config index: dfic — frequency rise rate at start.</summary>
 static int const eimc_s_dfic = 0;
+/// <summary>EIM config index: dfmax — maximum frequency rate of change.</summary>
 static int const eimc_s_dfmax = 1;
+/// <summary>EIM config index: p — number of pole pairs.</summary>
 static int const eimc_s_p = 2;
+/// <summary>EIM config index: cfu — voltage / frequency conversion coefficient.</summary>
 static int const eimc_s_cfu = 3;
+/// <summary>EIM config index: cim — current / current conversion coefficient.</summary>
 static int const eimc_s_cim = 4;
+/// <summary>EIM config index: icif — magnetisation current ratio.</summary>
 static int const eimc_s_icif = 5;
+/// <summary>EIM config index: Uzmax — maximum DC link voltage.</summary>
 static int const eimc_f_Uzmax = 7;
+/// <summary>EIM config index: Uzh — DC link voltage at field-weakening transition.</summary>
 static int const eimc_f_Uzh = 8;
+/// <summary>EIM config index: DU — voltage drop at the converter.</summary>
 static int const eimc_f_DU = 9;
+/// <summary>EIM config index: I0 — no-load magnetising current.</summary>
 static int const eimc_f_I0 = 10;
+/// <summary>EIM config index: cfu — V/f gain in normal mode.</summary>
 static int const eimc_f_cfu = 11;
+/// <summary>EIM config index: cfuH — V/f gain in field-weakening region.</summary>
 static int const eimc_f_cfuH = 12;
+/// <summary>EIM config index: F0 — starting force at zero speed.</summary>
 static int const eimc_p_F0 = 13;
+/// <summary>EIM config index: a1 — force-frequency slope coefficient.</summary>
 static int const eimc_p_a1 = 14;
+/// <summary>EIM config index: Pmax — maximum power.</summary>
 static int const eimc_p_Pmax = 15;
+/// <summary>EIM config index: Fh — force at field-weakening point.</summary>
 static int const eimc_p_Fh = 16;
+/// <summary>EIM config index: Ph — power at field-weakening point.</summary>
 static int const eimc_p_Ph = 17;
+/// <summary>EIM config index: Vh0 — speed where field weakening begins.</summary>
 static int const eimc_p_Vh0 = 18;
+/// <summary>EIM config index: Vh1 — speed of full field weakening.</summary>
 static int const eimc_p_Vh1 = 19;
+/// <summary>EIM config index: Imax — maximum motor current.</summary>
 static int const eimc_p_Imax = 20;
+/// <summary>EIM config index: abed — anti-skid set point.</summary>
 static int const eimc_p_abed = 21;
+/// <summary>EIM config index: eped — EP brake intensity bias.</summary>
 static int const eimc_p_eped = 22;
 
-//zmienne dla asynchronów
+// zmienne dla asynchronów
+/// <summary>EIM variable index: FMAXMAX — absolute maximum allowable force.</summary>
 static int const eimv_FMAXMAX = 0;
+/// <summary>EIM variable index: Fmax — current force limit.</summary>
 static int const eimv_Fmax = 1;
+/// <summary>EIM variable index: ks — slip coefficient.</summary>
 static int const eimv_ks = 2;
+/// <summary>EIM variable index: df — frequency offset.</summary>
 static int const eimv_df = 3;
+/// <summary>EIM variable index: fp — base frequency.</summary>
 static int const eimv_fp = 4;
+/// <summary>EIM variable index: U — applied voltage.</summary>
 static int const eimv_U = 5;
+/// <summary>EIM variable index: pole — pole-pair indicator.</summary>
 static int const eimv_pole = 6;
+/// <summary>EIM variable index: Ic — control current.</summary>
 static int const eimv_Ic = 7;
+/// <summary>EIM variable index: If — field current.</summary>
 static int const eimv_If = 8;
+/// <summary>EIM variable index: M — torque.</summary>
 static int const eimv_M = 9;
+/// <summary>EIM variable index: Fr — actual force.</summary>
 static int const eimv_Fr = 10;
+/// <summary>EIM variable index: Ipoj — line current.</summary>
 static int const eimv_Ipoj = 11;
+/// <summary>EIM variable index: Pm — mechanical power.</summary>
 static int const eimv_Pm = 12;
+/// <summary>EIM variable index: Pe — electrical power.</summary>
 static int const eimv_Pe = 13;
+/// <summary>EIM variable index: eta — efficiency.</summary>
 static int const eimv_eta = 14;
+/// <summary>EIM variable index: fkr — critical frequency.</summary>
 static int const eimv_fkr = 15;
+/// <summary>EIM variable index: Uzsmax — maximum measured DC link voltage.</summary>
 static int const eimv_Uzsmax = 16;
+/// <summary>EIM variable index: Pmax — instantaneous power limit.</summary>
 static int const eimv_Pmax = 17;
+/// <summary>EIM variable index: Fzad — set-point force.</summary>
 static int const eimv_Fzad = 18;
+/// <summary>EIM variable index: Imax — maximum allowed current.</summary>
 static int const eimv_Imax = 19;
+/// <summary>EIM variable index: Fful — full force.</summary>
 static int const eimv_Fful = 20;
 
+/// <summary>Brake-of-mode flag: PS (pneumatic, primary).</summary>
 static int const bom_PS = 1;
+/// <summary>Brake-of-mode flag: PN (pneumatic, no electrodynamic).</summary>
 static int const bom_PN = 2;
+/// <summary>Brake-of-mode flag: EP (electro-pneumatic).</summary>
 static int const bom_EP = 4;
+/// <summary>Brake-of-mode flag: MED (mixed pneumatic+ED).</summary>
 static int const bom_MED = 8;
 
+/// <summary>Bit flags reporting vehicle problems that prevent driving.</summary>
 enum TProblem // lista problemów taboru, które uniemożliwiają jazdę
 { // flagi bitowe
+  /// <summary>The vehicle has the brake applied or seized axles.</summary>
 	pr_Hamuje = 1, // pojazd ma załączony hamulec lub zatarte osie
+	               /// <summary>The vehicle requires pantographs to be inflated/raised.</summary>
 	pr_Pantografy = 2, // pojazd wymaga napompowania pantografów
+	                   /// <summary>Reserved sentinel — last bit flag.</summary>
 	pr_Ostatni = 0x80000000 // ostatnia flaga bitowa
 };
 
+/// <summary>Compressor parameter list — indices into the compressor programmer table.</summary>
 enum TCompressorList // lista parametrów w programatorze sprężarek
 { // pozycje kolejne
-    cl_Allow = 0, // zezwolenie na pracę sprężarek
-    cl_SpeedFactor = 1, // mnożnik wydajności
-    cl_MinFactor = 2, // mnożnik progu załącznika ciśnieniowego
-    cl_MaxFactor = 3 // mnożnik progu wyłącznika ciśnieniowego
+  /// <summary>Compressor enable permission (0/1).</summary>
+	cl_Allow = 0, // zezwolenie na pracę sprężarek
+	              /// <summary>Compressor output multiplier.</summary>
+	cl_SpeedFactor = 1, // mnożnik wydajności
+	                    /// <summary>Pressure-switch lower threshold multiplier.</summary>
+	cl_MinFactor = 2, // mnożnik progu załącznika ciśnieniowego
+	                  /// <summary>Pressure-switch upper threshold multiplier.</summary>
+	cl_MaxFactor = 3 // mnożnik progu wyłącznika ciśnieniowego
 };
 
+/// <summary>3-D position in world coordinates [m].</summary>
 struct TLocation
 {
+	/// <summary>X coordinate.</summary>
 	double X;
+	/// <summary>Y coordinate (vertical).</summary>
 	double Y;
+	/// <summary>Z coordinate.</summary>
 	double Z;
 };
 
+/// <summary>Euler-angle rotation (radians) around X / Y / Z axes.</summary>
 struct TRotation
 {
+	/// <summary>Rotation around X axis.</summary>
 	double Rx;
+	/// <summary>Rotation around Y axis.</summary>
 	double Ry;
+	/// <summary>Rotation around Z axis.</summary>
 	double Rz;
 };
 
+/// <summary>Vehicle bounding box (width × length × height [m]).</summary>
 struct TDimension
 {
+	/// <summary>Width.</summary>
 	double W = 0.0;
+	/// <summary>Length.</summary>
 	double L = 0.0;
+	/// <summary>Height.</summary>
 	double H = 0.0;
 };
 
+/// <summary>A pending command queued for the vehicle, with its arguments and propagation rules.</summary>
 struct TCommand
 {
+	/// <summary>Command name.</summary>
 	std::string Command; /*komenda*/
+	/// <summary>First numeric argument.</summary>
 	double Value1 = 0.0; /*argumenty komendy*/
+	/// <summary>Second numeric argument.</summary>
 	double Value2 = 0.0;
-    int Coupling { coupling::control }; // coupler flag used to determine command propagation
-    TLocation Location;
+	/// <summary>Coupling flag controlling how the command propagates between vehicles.</summary>
+	int Coupling{coupling::control}; // coupler flag used to determine command propagation
+	/// <summary>World-space location associated with the command.</summary>
+	TLocation Location;
 };
 
 /*tory*/
+/// <summary>Geometric shape of a track segment under the vehicle.</summary>
 struct TTrackShape
-{/*ksztalt odcinka*/
+{ /*ksztalt odcinka*/
+	/// <summary>Curvature radius [m]; 0 means straight track.</summary>
 	double R = 0.0; // promien
+	/// <summary>Segment length [m].</summary>
 	double Len = 0.0; // dlugosc
+	/// <summary>Track gradient (rise/run).</summary>
 	double dHtrack = 0.0; // nachylenie
+	/// <summary>Track cant / superelevation.</summary>
 	double dHrail = 0.0; // przechylka
 };
 
+/// <summary>Per-segment track parameters: gauge, friction, category, load capacity, damage.</summary>
 struct TTrackParam
-{/*parametry odcinka - szerokosc, tarcie statyczne, kategoria,  obciazalnosc w t/os, uszkodzenia*/
+{ /*parametry odcinka - szerokosc, tarcie statyczne, kategoria,  obciazalnosc w t/os, uszkodzenia*/
+	/// <summary>Track gauge / width [m].</summary>
 	double Width = 0.0;
+	/// <summary>Static friction coefficient on this segment.</summary>
 	double friction = 0.0;
+	/// <summary>Track category bit flags.</summary>
 	int CategoryFlag = 0;
+	/// <summary>Track-quality bit flags.</summary>
 	int QualityFlag = 0;
+	/// <summary>Track-damage bit flags (dtrack_*).</summary>
 	int DamageFlag = 0;
+	/// <summary>Maximum allowed velocity on this segment (used by AI driver).</summary>
 	double Velmax; /*dla uzytku maszynisty w ai_driver*/
 };
 
+/// <summary>Traction-supply parameters at the vehicle's current location.</summary>
 struct TTractionParam
 {
+	/// <summary>Catenary voltage [V].</summary>
 	double TractionVoltage = 0.0; /*napiecie*/
+	/// <summary>Catenary frequency [Hz] (0 for DC).</summary>
 	double TractionFreq = 0.0; /*czestotliwosc*/
+	/// <summary>Maximum current capacity [A].</summary>
 	double TractionMaxCurrent = 0.0; /*obciazalnosc*/
+	/// <summary>Pantograph-catenary contact resistance [Ω].</summary>
 	double TractionResistivity = 0.0; /*rezystancja styku*/
 };
 /*powyzsze parametry zwiazane sa z torem po ktorym aktualnie pojazd jedzie*/
 
-/*typy hamulcow zespolonych*/
-enum class TBrakeSystem { Individual, Pneumatic, ElectroPneumatic };
-/*podtypy hamulcow zespolonych*/
-enum class TBrakeSubSystem { ss_None, ss_W, ss_K, ss_KK, ss_Hik, ss_ESt, ss_KE, ss_LSt, ss_MT, ss_Dako };
-enum class TBrakeValve { NoValve, W, W_Lu_VI, W_Lu_L, W_Lu_XR, K, Kg, Kp, Kss, Kkg, Kkp, Kks, Hikg1, Hikss, Hikp1, KE, SW, EStED, NESt3, ESt3, LSt, ESt4, ESt3AL2, EP1, EP2, M483, CV1_L_TR, CV1, CV1_R, Other };
-enum class TBrakeHandle { NoHandle, West, FV4a, M394, M254, FVE408, FVel6, D2, Knorr, FD1, BS2, testH, St113, MHZ_P, MHZ_T, MHZ_EN57, MHZ_K5P, MHZ_K8P, MHZ_6P };
-/*typy hamulcow indywidualnych*/
-enum class TLocalBrake { NoBrake, ManualBrake, PneumaticBrake, HydraulicBrake };
-/*dla osob/towar: opoznienie hamowania/odhamowania*/
+/// <summary>High-level brake-system family.</summary>
+enum class TBrakeSystem
+{
+	/// <summary>Individual (vehicle-only) brake.</summary>
+	Individual,
+	/// <summary>Pneumatic brake (Westinghouse-style).</summary>
+	Pneumatic,
+	/// <summary>Electro-pneumatic brake.</summary>
+	ElectroPneumatic
+};
+/// <summary>Brake-system subtype identifying the manufacturer's distributor family.</summary>
+enum class TBrakeSubSystem
+{
+	ss_None,
+	ss_W,
+	ss_K,
+	ss_KK,
+	ss_Hik,
+	ss_ESt,
+	ss_KE,
+	ss_LSt,
+	ss_MT,
+	ss_Dako
+};
+/// <summary>Specific brake-distributor (valve) model.</summary>
+enum class TBrakeValve
+{
+	NoValve,
+	W,
+	W_Lu_VI,
+	W_Lu_L,
+	W_Lu_XR,
+	K,
+	Kg,
+	Kp,
+	Kss,
+	Kkg,
+	Kkp,
+	Kks,
+	Hikg1,
+	Hikss,
+	Hikp1,
+	KE,
+	SW,
+	EStED,
+	NESt3,
+	ESt3,
+	LSt,
+	ESt4,
+	ESt3AL2,
+	EP1,
+	EP2,
+	M483,
+	CV1_L_TR,
+	CV1,
+	CV1_R,
+	Other
+};
+/// <summary>Specific driver's brake-handle model (cab valve).</summary>
+enum class TBrakeHandle
+{
+	NoHandle,
+	West,
+	FV4a,
+	M394,
+	M254,
+	FVE408,
+	FVel6,
+	D2,
+	Knorr,
+	FD1,
+	BS2,
+	testH,
+	St113,
+	MHZ_P,
+	MHZ_T,
+	MHZ_EN57,
+	MHZ_K5P,
+	MHZ_K8P,
+	MHZ_6P
+};
+/// <summary>Type of the auxiliary (independent) brake.</summary>
+enum class TLocalBrake
+{
+	NoBrake,
+	ManualBrake,
+	PneumaticBrake,
+	HydraulicBrake
+};
+/// <summary>Brake delay parameter table (apply/release for passenger and freight).</summary>
 typedef double TBrakeDelayTable[4];
 
+/// <summary>One row of the brake pressure / pipe pressure / flow-speed table for a brake handle position.</summary>
 struct TBrakePressure
 {
+	/// <summary>Brake pipe pressure target [bar].</summary>
 	double PipePressureVal = 0.0;
+	/// <summary>Brake cylinder pressure target [bar].</summary>
 	double BrakePressureVal = 0.0;
+	/// <summary>Flow speed (orifice scaling).</summary>
 	double FlowSpeedVal = 0.0;
+	/// <summary>Brake system this entry applies to.</summary>
 	TBrakeSystem BrakeType = TBrakeSystem::Pneumatic;
 };
 
-typedef std::map<int,TBrakePressure> TBrakePressureTable;
+/// <summary>Brake pressure table indexed by handle position.</summary>
+typedef std::map<int, TBrakePressure> TBrakePressureTable;
 
-/*typy napedow*/
-enum class TEngineType { None, Dumb, WheelsDriven, ElectricSeriesMotor, ElectricInductionMotor, DieselEngine, SteamEngine, DieselElectric, Main };
-/*postac dostarczanej energii*/
-enum class TPowerType { NoPower, BioPower, MechPower, ElectricPower, SteamPower };
-/*rodzaj paliwa*/
-enum class TFuelType { Undefined, Coal, Oil };
-/*rodzaj rusztu*/
-struct TGrateType {
+/// <summary>Engine / drive type.</summary>
+enum class TEngineType
+{
+	None,
+	Dumb,
+	WheelsDriven,
+	ElectricSeriesMotor,
+	ElectricInductionMotor,
+	DieselEngine,
+	SteamEngine,
+	DieselElectric,
+	Main
+};
+/// <summary>Form of energy supplied by the power source.</summary>
+enum class TPowerType
+{
+	NoPower,
+	BioPower,
+	MechPower,
+	ElectricPower,
+	SteamPower
+};
+/// <summary>Fuel type for combustion engines.</summary>
+enum class TFuelType
+{
+	Undefined,
+	Coal,
+	Oil
+};
+/// <summary>Steam-locomotive grate parameters.</summary>
+struct TGrateType
+{
+	/// <summary>Fuel type burned on this grate.</summary>
 	TFuelType FuelType;
+	/// <summary>Grate surface area [m²].</summary>
 	double GrateSurface;
+	/// <summary>Fuel transport speed (stoker rate).</summary>
 	double FuelTransportSpeed;
+	/// <summary>Fuel ignition temperature [°C].</summary>
 	double IgnitionTemperature;
+	/// <summary>Maximum allowable grate temperature [°C].</summary>
 	double MaxTemperature;
-    //inline TGrateType() {
-    //    FuelType = Undefined;
-    //    GrateSurface = 0.0;
-    //    FuelTransportSpeed = 0.0;
-    //    IgnitionTemperature = 0.0;
-    //    MaxTemperature = 0.0;
-    //}
+	// inline TGrateType() {
+	//     FuelType = Undefined;
+	//     GrateSurface = 0.0;
+	//     FuelTransportSpeed = 0.0;
+	//     IgnitionTemperature = 0.0;
+	//     MaxTemperature = 0.0;
+	// }
 };
-/*rodzaj kotla*/
-struct TBoilerType {
+/// <summary>Steam-locomotive boiler parameters.</summary>
+struct TBoilerType
+{
+	/// <summary>Boiler internal volume [m³].</summary>
 	double BoilerVolume;
+	/// <summary>Heat exchange surface of the boiler [m²].</summary>
 	double BoilerHeatSurface;
+	/// <summary>Superheater surface [m²].</summary>
 	double SuperHeaterSurface;
-	double MaxWaterVolume; double MinWaterVolume;
+	/// <summary>Maximum water volume [m³].</summary>
+	double MaxWaterVolume;
+	/// <summary>Minimum (safety) water volume [m³].</summary>
+	double MinWaterVolume;
+	/// <summary>Maximum boiler pressure [bar].</summary>
 	double MaxPressure;
-    //inline TBoilerType() {
-    //    BoilerVolume = 0.0;
-    //    BoilerHeatSurface = 0.0;
-    //    SuperHeaterSurface = 0.0;
-    //    MaxWaterVolume = 0.0;
-    //    MinWaterVolume = 0.0;
-    //    MaxPressure = 0.0;
-    //}
+	// inline TBoilerType() {
+	//     BoilerVolume = 0.0;
+	//     BoilerHeatSurface = 0.0;
+	//     SuperHeaterSurface = 0.0;
+	//     MaxWaterVolume = 0.0;
+	//     MinWaterVolume = 0.0;
+	//     MaxPressure = 0.0;
+	// }
 };
-/*rodzaj odbieraka pradu*/
+/// <summary>Pantograph (current collector) model identifier.</summary>
 enum TPantType
 {
+	/// <summary>AKP-4E pantograph (PKP single-arm).</summary>
 	AKP_4E,
+	/// <summary>DSA-series pantograph (Stemmann).</summary>
 	DSAx,
+	/// <summary>EC160/EC200 pantograph.</summary>
 	EC160_200,
+	/// <summary>WBL85 pantograph.</summary>
 	WBL85
 };
-struct TCurrentCollector {
-    long CollectorsNo; //musi być tu, bo inaczej się kopie
-    double MinH; double MaxH; //zakres ruchu pantografu, nigdzie nie używany
-    double CSW;       //szerokość części roboczej (styku) ślizgacza
-    double MinV; double MaxV; //minimalne i maksymalne akceptowane napięcie
-    bool OVP;       //czy jest przekaznik nadnapieciowy
-    double InsetV;    //minimalne napięcie wymagane do załączenia
-    double MinPress;  //minimalne ciśnienie do załączenia WS
-    double MaxPress;  //maksymalne ciśnienie za reduktorem
-    bool FakePower;
-    int PhysicalLayout;
+/// <summary>Current-collector (pantograph) configuration block.</summary>
+struct TCurrentCollector
+{
+	/// <summary>Number of pantographs of this type.</summary>
+	long CollectorsNo; // musi być tu, bo inaczej się kopie
+	/// <summary>Minimum pantograph height [m] (currently unused).</summary>
+	double MinH;
+	/// <summary>Maximum pantograph height [m] (currently unused).</summary>
+	double MaxH;
+	/// <summary>Working width of the contact strip [m].</summary>
+	double CSW; // szerokość części roboczej (styku) ślizgacza
+	/// <summary>Minimum acceptable contact-line voltage [V].</summary>
+	double MinV;
+	/// <summary>Maximum acceptable contact-line voltage [V].</summary>
+	double MaxV;
+	/// <summary>True if an over-voltage protection relay is fitted.</summary>
+	bool OVP; // czy jest przekaznik nadnapieciowy
+	/// <summary>Minimum voltage required to engage the main switch [V].</summary>
+	double InsetV; // minimalne napięcie wymagane do załączenia
+	/// <summary>Minimum air pressure required to operate [bar].</summary>
+	double MinPress; // minimalne ciśnienie do załączenia WS
+	/// <summary>Maximum air pressure after the reductor [bar].</summary>
+	double MaxPress; // maksymalne ciśnienie za reduktorem
+	/// <summary>True if power output is faked (e.g. for AI vehicles without a model).</summary>
+	bool FakePower;
+	/// <summary>Physical layout id (orientation / side).</summary>
+	int PhysicalLayout;
+	/// <summary>Pantograph type (model).</summary>
 	TPantType PantographType;
-    //inline TCurrentCollector() {
-    //    CollectorsNo = 0;
-    //    MinH, MaxH, CSW, MinV, MaxV = 0.0;
-    //    OVP, InsetV, MinPress, MaxPress = 0.0;
-    //}
+	// inline TCurrentCollector() {
+	//     CollectorsNo = 0;
+	//     MinH, MaxH, CSW, MinV, MaxV = 0.0;
+	//     OVP, InsetV, MinPress, MaxPress = 0.0;
+	// }
 };
-/*typy źródeł mocy*/
-enum class TPowerSource { NotDefined, InternalSource, Transducer, Generator, Accumulator, CurrentCollector, PowerCable, Heater, Main };
-
-struct engine_generator {
-    // ld inputs
-    double *engine_revolutions; // revs per second of the prime mover
-    // config
-    double revolutions_min; // min working revolutions rate, in revs per second
-    double revolutions_max; // max working revolutions rate, in revs per second
-    double voltage_min; // voltage generated at min working revolutions
-    double voltage_max; // voltage generated at max working revolutions
-    // ld outputs
-    double revolutions;
-    double voltage;
+/// <summary>Power-source kind (where the vehicle gets electrical or mechanical energy from).</summary>
+enum class TPowerSource
+{
+	NotDefined,
+	InternalSource,
+	Transducer,
+	Generator,
+	Accumulator,
+	CurrentCollector,
+	PowerCable,
+	Heater,
+	Main
 };
 
+/// <summary>Diesel engine driven generator parameters and outputs.</summary>
+struct engine_generator
+{
+	// ld inputs
+	/// <summary>Pointer to the prime-mover revolutions [rev/s].</summary>
+	double *engine_revolutions; // revs per second of the prime mover
+	// config
+	/// <summary>Minimum working rev rate [rev/s].</summary>
+	double revolutions_min; // min working revolutions rate, in revs per second
+	/// <summary>Maximum working rev rate [rev/s].</summary>
+	double revolutions_max; // max working revolutions rate, in revs per second
+	/// <summary>Voltage generated at <c>revolutions_min</c> [V].</summary>
+	double voltage_min; // voltage generated at min working revolutions
+	/// <summary>Voltage generated at <c>revolutions_max</c> [V].</summary>
+	double voltage_max; // voltage generated at max working revolutions
+	// ld outputs
+	/// <summary>Current rev rate [rev/s].</summary>
+	double revolutions;
+	/// <summary>Current generated voltage [V].</summary>
+	double voltage;
+};
+
+/// <summary>Battery / accumulator power source.</summary>
 struct TAccumulator
 {
+	/// <summary>Maximum capacity [Ah].</summary>
 	double MaxCapacity;
+	/// <summary>Source used to recharge the battery.</summary>
 	TPowerSource RechargeSource;
-    //inline _mover__1() {
-    //    MaxCapacity = 0.0;
-    //    RechargeSource = NotDefined;
-    //}
+	// inline _mover__1() {
+	//     MaxCapacity = 0.0;
+	//     RechargeSource = NotDefined;
+	// }
 };
 
+/// <summary>Permanent power cable (e.g. to a heater) carrying a specific power form.</summary>
 struct TPowerCable
 {
+	/// <summary>Type of power transmitted.</summary>
 	TPowerType PowerTrans;
+	/// <summary>Steam pressure (when SteamPower is transmitted) [bar].</summary>
 	double SteamPressure;
-    //inline _mover__2() {
-    //    SteamPressure = 0.0;
-    //    PowerTrans = NoPower;
-    //}
+	// inline _mover__2() {
+	//     SteamPressure = 0.0;
+	//     PowerTrans = NoPower;
+	// }
 };
 
+/// <summary>Steam locomotive boiler-and-grate combo.</summary>
 struct THeater
 {
+	/// <summary>Grate parameters.</summary>
 	TGrateType Grate;
+	/// <summary>Boiler parameters.</summary>
 	TBoilerType Boiler;
 };
 
-struct TTransducer {
-    // ld inputs
-    double InputVoltage;
+/// <summary>Transducer (DC-DC / converter) parameters.</summary>
+struct TTransducer
+{
+	// ld inputs
+	/// <summary>Input voltage [V].</summary>
+	double InputVoltage;
 };
 
-/*parametry źródeł mocy*/
+/// <summary>
+/// Generic power-source parameters. The trailing union holds source-specific
+/// configuration depending on <c>SourceType</c>.
+/// </summary>
 struct TPowerParameters
 {
+	/// <summary>Maximum source voltage [V].</summary>
 	double MaxVoltage;
+	/// <summary>Maximum source current [A].</summary>
 	double MaxCurrent;
+	/// <summary>Internal resistance [Ω].</summary>
 	double IntR;
+	/// <summary>Type of source (selects which union member is meaningful).</summary>
 	TPowerSource SourceType;
 	union
 	{
@@ -589,17 +1028,16 @@ struct TPowerParameters
 		{
 			TPowerType PowerType;
 		};
-
 	};
-    inline TPowerParameters()
-    {
-        MaxVoltage = 0.0;
-        MaxCurrent = 0.0;
-        IntR = 0.001;
-        SourceType = TPowerSource::NotDefined;
-        PowerType = TPowerType::NoPower;
-        RPowerCable.PowerTrans = TPowerType::NoPower;
-    }
+	inline TPowerParameters()
+	{
+		MaxVoltage = 0.0;
+		MaxCurrent = 0.0;
+		IntR = 0.001;
+		SourceType = TPowerSource::NotDefined;
+		PowerType = TPowerType::NoPower;
+		RPowerCable.PowerTrans = TPowerType::NoPower;
+	}
 };
 
 /*dla lokomotyw elektrycznych:*/
@@ -646,7 +1084,7 @@ struct TShuntScheme
 };
 typedef TShuntScheme TShuntSchemeTable[33];
 struct TMPTRelay
-{/*lista przekaznikow bocznikowania*/
+{ /*lista przekaznikow bocznikowania*/
 	double Iup = 0.0;
 	double Idown = 0.0;
 };
@@ -661,15 +1099,16 @@ struct TMotorParameters
 	double Isat;
 	double fi0; // aproksymacja E(n)=fi*n}    {dla dizla fi, mfi: predkosci przelozenia biegu <->
 	bool AutoSwitch;
-    TMotorParameters() {
-        mfi = 0.0;
-        mIsat = 0.0;
-        mfi0 = 0.0;
-        fi = 0.0;
-        Isat = 0.0;
-        fi0 = 0.0;
-        AutoSwitch = false;
-    }
+	TMotorParameters()
+	{
+		mfi = 0.0;
+		mIsat = 0.0;
+		mfi0 = 0.0;
+		fi = 0.0;
+		Isat = 0.0;
+		fi0 = 0.0;
+		AutoSwitch = false;
+	}
 };
 
 struct TUniversalCtrl
@@ -684,7 +1123,7 @@ struct TUniversalCtrl
 	int NextPosFastInc = 0; /*nastepna duza pozycja przy przechodzeniu szybkim*/
 	int PrevPosFastDec = 0; /*poprzednia duza pozycja przy przechodzeniu szybkim*/
 };
-using TUniversalCtrlTable = std::array< TUniversalCtrl, UniversalCtrlArraySize + 1>;
+using TUniversalCtrlTable = std::array<TUniversalCtrl, UniversalCtrlArraySize + 1>;
 
 class TSecuritySystem
 {
@@ -714,7 +1153,7 @@ class TSecuritySystem
 	double MaxHoldTime = 1.5;
 	bool CabDependent = false;
 
-public:
+  public:
 	void set_enabled(bool e);
 	void acknowledge_press();
 	void acknowledge_release();
@@ -737,77 +1176,88 @@ public:
 };
 
 struct TTransmision
-{//liczba zebow przekladni
+{ // liczba zebow przekladni
 	int NToothM = 0;
 	int NToothW = 0;
 	double Ratio = 1.0;
 	double Efficiency = 1.0;
 };
 
-enum class TCouplerType { NoCoupler, Articulated, Bare, Chain, Screw, Automatic };
-
-struct power_coupling {
-    double current{ 0.0 };
-    double voltage{ 0.0 };
-    bool is_local{ false }; // whether the power comes from external or onboard source
-    bool is_live{ false }; // whether the coupling with next vehicle is live
+enum class TCouplerType
+{
+	NoCoupler,
+	Articulated,
+	Bare,
+	Chain,
+	Screw,
+	Automatic
 };
 
-struct TCoupling {
+struct power_coupling
+{
+	double current{0.0};
+	double voltage{0.0};
+	bool is_local{false}; // whether the power comes from external or onboard source
+	bool is_live{false}; // whether the coupling with next vehicle is live
+};
+
+struct TCoupling
+{
 	/*parametry*/
-    double SpringKB = 1.0;   /*stala sprezystosci zderzaka/sprzegu, %tlumiennosci */
-    double DmaxB = 0.1; /*tolerancja scisku/rozciagania, sila rozerwania*/
-    double FmaxB = 1000.0;
-    double SpringKC = 1.0;
-    double DmaxC = 0.1;
-    double FmaxC = 1000.0;
-    double beta = 0.0;
-    TCouplerType CouplerType = TCouplerType::NoCoupler;     /*typ sprzegu*/
-    int AutomaticCouplingFlag = coupling::coupler;
-    int AllowedFlag = ( coupling::coupler | coupling::brakehose ); //Ra: maska dostępnych
-    int PowerFlag = ( coupling::power110v | coupling::power24v );
-    int PowerCoupling = coupling::permanent; // type of coupling required for power transfer
-    /*zmienne*/
-    bool AutomaticCouplingAllowed { true }; // whether automatic coupling can be currently performed
+	double SpringKB = 1.0; /*stala sprezystosci zderzaka/sprzegu, %tlumiennosci */
+	double DmaxB = 0.1; /*tolerancja scisku/rozciagania, sila rozerwania*/
+	double FmaxB = 1000.0;
+	double SpringKC = 1.0;
+	double DmaxC = 0.1;
+	double FmaxC = 1000.0;
+	double beta = 0.0;
+	TCouplerType CouplerType = TCouplerType::NoCoupler; /*typ sprzegu*/
+	int AutomaticCouplingFlag = coupling::coupler;
+	int AllowedFlag = (coupling::coupler | coupling::brakehose); // Ra: maska dostępnych
+	int PowerFlag = (coupling::power110v | coupling::power24v);
+	int PowerCoupling = coupling::permanent; // type of coupling required for power transfer
+	/*zmienne*/
+	bool AutomaticCouplingAllowed{true}; // whether automatic coupling can be currently performed
 	int CouplingFlag = 0; /*0 - wirtualnie, 1 - sprzegi, 2 - pneumatycznie, 4 - sterowanie, 8 - kabel mocy*/
 	class TMoverParameters *Connected = nullptr; /*co jest podlaczone*/
-    int ConnectedNr = 0;           //Ra: od której strony podłączony do (Connected): 0=przód, 1=tył
-	double CForce = 0.0;                /*sila z jaka dzialal*/
-	double Dist = 0.0;                  /*strzalka ugiecia zderzaków*/
-	bool CheckCollision = false;     /*czy sprawdzac sile czy pedy*/
-    float stretch_duration { 0.f }; // seconds, elapsed time with excessive force applied to the coupler
-    // optional adapter piece
-    double adapter_length { 0.0 }; // meters, value added on the given end to standard vehicle (half)length
-    double adapter_height { 0.0 }; // meters, distance from rail level
-    TCouplerType adapter_type = TCouplerType::NoCoupler; // CouplerType override if other than NoCoupler
+	int ConnectedNr = 0; // Ra: od której strony podłączony do (Connected): 0=przód, 1=tył
+	double CForce = 0.0; /*sila z jaka dzialal*/
+	double Dist = 0.0; /*strzalka ugiecia zderzaków*/
+	bool CheckCollision = false; /*czy sprawdzac sile czy pedy*/
+	float stretch_duration{0.f}; // seconds, elapsed time with excessive force applied to the coupler
+	// optional adapter piece
+	double adapter_length{0.0}; // meters, value added on the given end to standard vehicle (half)length
+	double adapter_height{0.0}; // meters, distance from rail level
+	TCouplerType adapter_type = TCouplerType::NoCoupler; // CouplerType override if other than NoCoupler
 
-    power_coupling power_high;
-    power_coupling power_110v;
-    power_coupling power_24v;
+	power_coupling power_high;
+	power_coupling power_110v;
+	power_coupling power_24v;
 
-    int sounds { 0 }; // sounds emitted by the coupling devices
-    bool Render = false;             /*ABu: czy rysowac jak zaczepiony sprzeg*/
-    std::string control_type; // abstraction of control coupling interface and communication standard
+	int sounds{0}; // sounds emitted by the coupling devices
+	bool Render = false; /*ABu: czy rysowac jak zaczepiony sprzeg*/
+	std::string control_type; // abstraction of control coupling interface and communication standard
 
-    inline bool
-        has_adapter() const {
-            return ( adapter_type != TCouplerType::NoCoupler ); }
-    inline TCouplerType const
-        type() const {
-            return (
-                adapter_type == TCouplerType::NoCoupler ?
-                    CouplerType :
-                    adapter_type ); }
+	inline bool has_adapter() const
+	{
+		return (adapter_type != TCouplerType::NoCoupler);
+	}
+	inline TCouplerType const type() const
+	{
+		return (adapter_type == TCouplerType::NoCoupler ? CouplerType : adapter_type);
+	}
 };
 
 class TDynamicObject;
-struct neighbour_data {
-    TDynamicObject *vehicle { nullptr }; // detected obstacle
-    int vehicle_end { -1 }; // facing end of the obstacle
-    float distance { 10000.f }; // distance to the obstacle // NOTE: legacy value. TBD, TODO: use standard -1 instead?
+struct neighbour_data
+{
+	TDynamicObject *vehicle{nullptr}; // detected obstacle
+	int vehicle_end{-1}; // facing end of the obstacle
+	float distance{10000.f}; // distance to the obstacle // NOTE: legacy value. TBD, TODO: use standard -1 instead?
 };
 
-struct speed_control {
+struct speed_control
+{
 	bool IsActive = false;
 	bool Start = false;
 	bool ManualStateOverride = true;
@@ -833,11 +1283,12 @@ struct speed_control {
 	double FactorIpos = 0.0;
 	double FactorIneg = 0.0;
 	double BrakeInterventionVel = 30.0;
-    double PowerUpSpeed = 1000;
-    double PowerDownSpeed = 1000;
+	double PowerUpSpeed = 1000;
+	double PowerDownSpeed = 1000;
 };
 
-struct inverter {
+struct inverter
+{
 	double Freal = 0.0;
 	double Request = 0.0;
 	bool IsActive = true;
@@ -1813,9 +2264,9 @@ class TMoverParameters
 
 	int modernDimmerPosition{0};
 	int modernDimmerDefaultPosition{0};
-	//bool modernContainOffPos{true};
-	bool enableModernDimmer {false};
-	bool modernDimmerCanCycle {false};
+	// bool modernContainOffPos{true};
+	bool enableModernDimmer{false};
+	bool modernDimmerCanCycle{false};
 
 	// Barwa reflektora
 	int refR{255}; // Czerwony
@@ -1827,97 +2278,97 @@ class TMoverParameters
 	double highDimMultiplier{2.5f}; // mnoznik dlugich przyciemnionych
 	double highMultiplier{2.8f}; // mnoznik dlugich
 
-    plc::basic_controller m_plc;
+	plc::basic_controller m_plc;
 
-    int AIHintPantstate{ 0 }; // suggested pantograph setup
-    bool AIHintPantUpIfIdle{ true }; // whether raise both pantographs if idling for a while
-    double AIHintLocalBrakeAccFactor{ 1.05 }; // suggested acceleration weight for local brake operation
+	int AIHintPantstate{0}; // suggested pantograph setup
+	bool AIHintPantUpIfIdle{true}; // whether raise both pantographs if idling for a while
+	double AIHintLocalBrakeAccFactor{1.05}; // suggested acceleration weight for local brake operation
 
-public:
+  public:
 	TMoverParameters(double VelInitial, std::string TypeNameInit, std::string NameInit, int Cab);
 	// obsługa sprzęgów
-    static double CouplerDist( TMoverParameters const *Left, TMoverParameters const *Right );
-    static double Distance(const TLocation &Loc1, const TLocation &Loc2, const TDimension &Dim1, const TDimension &Dim2);
+	static double CouplerDist(TMoverParameters const *Left, TMoverParameters const *Right);
+	static double Distance(const TLocation &Loc1, const TLocation &Loc2, const TDimension &Dim1, const TDimension &Dim2);
 	bool Attach(int ConnectNo, int ConnectToNr, TMoverParameters *ConnectTo, int CouplingType, bool Enforce = false, bool Audible = true);
 	int DettachStatus(int ConnectNo);
 	bool Dettach(int ConnectNo);
-    void damage_coupler( int const End );
-    void Derail(DerailReason Reason);
+	void damage_coupler(int const End);
+	void Derail(DerailReason Reason);
 	bool DirectionForward();
-    bool DirectionBackward( void );/*! kierunek ruchu*/
-    bool EIMDirectionChangeAllow( void ) const;
-    inline double IsVehicleEIMBrakingFactor() {
-        return (
-            ( DynamicBrakeFlag && ResistorsFlag ) ? 0.0 :
-            eimv[ eimv_Ipoj ] < 0 ? -1.0 :
-            1.0 ); }
+	bool DirectionBackward(void); /*! kierunek ruchu*/
+	bool EIMDirectionChangeAllow(void) const;
+	inline double IsVehicleEIMBrakingFactor()
+	{
+		return ((DynamicBrakeFlag && ResistorsFlag) ? 0.0 : eimv[eimv_Ipoj] < 0 ? -1.0 : 1.0);
+	}
 	void BrakeLevelSet(double b);
 	bool BrakeLevelAdd(double b);
 	bool IncBrakeLevel(); // wersja na użytek AI
 	bool DecBrakeLevel();
 	bool ChangeCab(int direction);
 	bool CurrentSwitch(bool const State);
-    bool IsMotorOverloadRelayHighThresholdOn() const;
+	bool IsMotorOverloadRelayHighThresholdOn() const;
 	void UpdateBatteryVoltage(double dt);
-	double ComputeMovement(double dt, double dt1, const TTrackShape &Shape, TTrackParam &Track, TTractionParam &ElectricTraction, TLocation const &NewLoc, TRotation const &NewRot); //oblicza przesuniecie pojazdu
-	double FastComputeMovement(double dt, const TTrackShape &Shape, TTrackParam &Track, TLocation const &NewLoc, TRotation const &NewRot); //oblicza przesuniecie pojazdu - wersja zoptymalizowana
-    void compute_movement_( double const Deltatime );
+	double ComputeMovement(double dt, double dt1, const TTrackShape &Shape, TTrackParam &Track, TTractionParam &ElectricTraction, TLocation const &NewLoc,
+	                       TRotation const &NewRot); // oblicza przesuniecie pojazdu
+	double FastComputeMovement(double dt, const TTrackShape &Shape, TTrackParam &Track, TLocation const &NewLoc, TRotation const &NewRot); // oblicza przesuniecie pojazdu - wersja zoptymalizowana
+	void compute_movement_(double const Deltatime);
 	double ShowEngineRotation(int VehN);
 
 	// Q *******************************************************************************************
-	double GetTrainsetVoltage( int const Coupling = ( coupling::heating | coupling::highvoltage ) ) const;
-    double GetTrainsetHighVoltage() const;
+	double GetTrainsetVoltage(int const Coupling = (coupling::heating | coupling::highvoltage)) const;
+	double GetTrainsetHighVoltage() const;
 	bool switch_physics(bool const State);
 	double LocalBrakeRatio(void);
 	double ManualBrakeRatio(void);
-	double PipeRatio(void);/*ile napelniac*/
-	double RealPipeRatio(void);/*jak szybko*/
+	double PipeRatio(void); /*ile napelniac*/
+	double RealPipeRatio(void); /*jak szybko*/
 	double BrakeVP(void) const;
-    double EngineRPMRatio() const; // returns current engine revolutions as percentage of max engine revolutions, in range 0-1
-    double EngineIdleRPM() const;
-    double EngineMaxRPM() const;
+	double EngineRPMRatio() const; // returns current engine revolutions as percentage of max engine revolutions, in range 0-1
+	double EngineIdleRPM() const;
+	double EngineMaxRPM() const;
 
 	/*! przesylanie komend sterujacych*/
-	bool SendCtrlToNext(std::string const CtrlCommand, double const ctrlvalue, double const dir, int const Couplertype = coupling::control );
-    bool SetInternalCommand( std::string NewCommand, double NewValue1, double NewValue2, int const Couplertype = coupling::control );
+	bool SendCtrlToNext(std::string const CtrlCommand, double const ctrlvalue, double const dir, int const Couplertype = coupling::control);
+	bool SetInternalCommand(std::string NewCommand, double NewValue1, double NewValue2, int const Couplertype = coupling::control);
 	double GetExternalCommand(std::string &Command);
-    bool RunCommand( std::string Command, double CValue1, double CValue2, int const Couplertype = coupling::control );
-    bool RunInternalCommand();
+	bool RunCommand(std::string Command, double CValue1, double CValue2, int const Couplertype = coupling::control);
+	bool RunInternalCommand();
 	void PutCommand(std::string NewCommand, double NewValue1, double NewValue2, const TLocation &NewLocation);
-	bool CabActivisation( bool const Enforce = false );
-	bool CabDeactivisation( bool const Enforce = false );
-	bool CabActivisationAuto( bool const Enforce = false );
-	bool CabDeactivisationAuto( bool const Enforce = false );
+	bool CabActivisation(bool const Enforce = false);
+	bool CabDeactivisation(bool const Enforce = false);
+	bool CabActivisationAuto(bool const Enforce = false);
+	bool CabDeactivisationAuto(bool const Enforce = false);
 
 	/*! funkcje zwiekszajace/zmniejszajace nastawniki*/
 	/*! glowny nastawnik:*/
 	bool IncMainCtrl(int CtrlSpeed);
 	bool DecMainCtrl(int CtrlSpeed);
-    bool IsMainCtrlActualNoPowerPos() const; // whether the master controller is actually set to position which won't generate any extra power
-    bool IsMainCtrlNoPowerPos() const; // whether the master controller is set to position which won't generate any extra power
-    bool IsMainCtrlMaxPowerPos() const;
-    int MainCtrlNoPowerPos() const; // highest setting of master controller which won't cause engine to generate extra power
-    int MainCtrlActualPowerPos() const; // current actual setting of master controller, relative to the highest setting not generating extra power
-    int MainCtrlPowerPos() const; // current setting of master controller, relative to the highest setting not generating extra power
+	bool IsMainCtrlActualNoPowerPos() const; // whether the master controller is actually set to position which won't generate any extra power
+	bool IsMainCtrlNoPowerPos() const; // whether the master controller is set to position which won't generate any extra power
+	bool IsMainCtrlMaxPowerPos() const;
+	int MainCtrlNoPowerPos() const; // highest setting of master controller which won't cause engine to generate extra power
+	int MainCtrlActualPowerPos() const; // current actual setting of master controller, relative to the highest setting not generating extra power
+	int MainCtrlPowerPos() const; // current setting of master controller, relative to the highest setting not generating extra power
 	/*! pomocniczy nastawnik:*/
 	bool IncScndCtrl(int CtrlSpeed);
 	bool DecScndCtrl(int CtrlSpeed);
 	int GetVirtualScndPos();
-    bool IsScndCtrlNoPowerPos() const;
-    bool IsScndCtrlMaxPowerPos() const;
+	bool IsScndCtrlNoPowerPos() const;
+	bool IsScndCtrlMaxPowerPos() const;
 
-	bool AddPulseForce(int Multipler);/*dla drezyny*/
+	bool AddPulseForce(int Multipler); /*dla drezyny*/
 
-	bool SandboxManual( bool const State, range_t const Notify = range_t::consist );/*wlacza/wylacza reczne sypanie piasku*/
-	bool SandboxAuto( bool const State, range_t const Notify = range_t::consist );/*wlacza/wylacza automatyczne sypanie piasku*/
-    bool Sandbox( bool const State, range_t const Notify = range_t::consist );/*wlacza/wylacza sypanie piasku*/
-	bool SandboxAutoAllow(bool const State);/*wlacza/wylacza zezwolenie na automatyczne sypanie piasku*/
+	bool SandboxManual(bool const State, range_t const Notify = range_t::consist); /*wlacza/wylacza reczne sypanie piasku*/
+	bool SandboxAuto(bool const State, range_t const Notify = range_t::consist); /*wlacza/wylacza automatyczne sypanie piasku*/
+	bool Sandbox(bool const State, range_t const Notify = range_t::consist); /*wlacza/wylacza sypanie piasku*/
+	bool SandboxAutoAllow(bool const State); /*wlacza/wylacza zezwolenie na automatyczne sypanie piasku*/
 
-						  /*! zbijanie czuwaka/SHP*/
+	/*! zbijanie czuwaka/SHP*/
 	void SecuritySystemReset(void);
 	void SecuritySystemCheck(double dt);
 
-	bool BatterySwitch( bool State, range_t const Notify = range_t::consist );
+	bool BatterySwitch(bool State, range_t const Notify = range_t::consist);
 	bool EpFuseSwitch(bool State);
 	bool SpringBrakeActivate(bool State);
 	bool SpringBrakeShutOff(bool State);
@@ -1933,30 +2384,30 @@ public:
 	bool DecManualBrakeLevel(int CtrlSpeed);
 	bool DynamicBrakeSwitch(bool Switch);
 	bool RadiostopSwitch(bool Switch);
-    bool AlarmChainSwitch( bool const State );
+	bool AlarmChainSwitch(bool const State);
 	bool AntiSlippingBrake(void);
 	bool BrakeReleaser(int state);
 	bool UniversalBrakeButton(int button, int state); /*uniwersalny przycisk hamulca*/
 	bool SwitchEPBrake(int state);
 	bool AntiSlippingButton(void); /*! reczny wlacznik urzadzen antyposlizgowych*/
 
-								   /*funkcje dla ukladow pneumatycznych*/
+	/*funkcje dla ukladow pneumatycznych*/
 	bool IncBrakePress(double &brake, double PressLimit, double dp);
 	bool DecBrakePress(double &brake, double PressLimit, double dp);
-	bool BrakeDelaySwitch(int BDS);/*! przelaczanie nastawy opoznienia*/
-    bool IncBrakeMult(void);/*przelaczanie prozny/ladowny*/
+	bool BrakeDelaySwitch(int BDS); /*! przelaczanie nastawy opoznienia*/
+	bool IncBrakeMult(void); /*przelaczanie prozny/ladowny*/
 	bool DecBrakeMult(void);
 	/*pomocnicze funkcje dla ukladow pneumatycznych*/
 	void UpdateBrakePressure(double dt);
 	void UpdatePipePressure(double dt);
-	void CompressorCheck(double dt);/*wlacza, wylacza kompresor, laduje zbiornik*/
-	void UpdatePantVolume(double dt);             //Ra
+	void CompressorCheck(double dt); /*wlacza, wylacza kompresor, laduje zbiornik*/
+	void UpdatePantVolume(double dt); // Ra
 	void UpdateScndPipePressure(double dt);
 	void UpdateSpringBrake(double dt);
 	double GetDVc(double dt);
 
 	/*funkcje obliczajace sily*/
-	void ComputeConstans(void);//ABu: wczesniejsze wyznaczenie stalych dla liczenia sil
+	void ComputeConstans(void); // ABu: wczesniejsze wyznaczenie stalych dla liczenia sil
 	void ComputeMass(void);
 	void ComputeTotalForce(double dt);
 	double Adhesive(double staticfriction) const;
@@ -1971,178 +2422,180 @@ public:
 	double ComputeRotatingWheel(double WForce, double dt, double n) const;
 
 	/*--funkcje dla lokomotyw*/
-    bool WaterPumpBreakerSwitch( bool State, range_t const Notify = range_t::consist ); // water pump breaker state toggle
-    bool WaterPumpSwitch( bool State, range_t const Notify = range_t::consist ); // water pump state toggle
-    bool WaterPumpSwitchOff( bool State, range_t const Notify = range_t::consist ); // water pump state toggle
-    bool WaterHeaterBreakerSwitch( bool State, range_t const Notify = range_t::consist ); // water heater breaker state toggle
-    bool WaterHeaterSwitch( bool State, range_t const Notify = range_t::consist ); // water heater state toggle
-    bool WaterCircuitsLinkSwitch( bool State, range_t const Notify = range_t::consist ); // water circuits link state toggle
-    bool FuelPumpSwitch( bool State, range_t const Notify = range_t::consist ); // fuel pump state toggle
-    bool FuelPumpSwitchOff( bool State, range_t const Notify = range_t::consist ); // fuel pump state toggle
-    bool OilPumpSwitch( bool State, range_t const Notify = range_t::consist ); // oil pump state toggle
-    bool OilPumpSwitchOff( bool State, range_t const Notify = range_t::consist ); // oil pump state toggle
-    bool MotorBlowersSwitch( bool State, end const Side, range_t const Notify = range_t::consist ); // traction motor fan state toggle
-    bool MotorBlowersSwitchOff( bool State, end const Side, range_t const Notify = range_t::consist ); // traction motor fan state toggle
-    bool CompartmentLightsSwitch( bool State, range_t const Notify = range_t::consist ); // compartment lights state toggle
-    bool CompartmentLightsSwitchOff( bool State, range_t const Notify = range_t::consist ); // compartment lights state toggle
-    bool MainSwitch( bool const State, range_t const Notify = range_t::consist );/*! wylacznik glowny*/
-    void MainSwitch_( bool const State );
-    bool MainSwitchCheck() const; // checks conditions for closing the line breaker
-    bool ConverterSwitch( bool State, range_t const Notify = range_t::consist );/*! wl/wyl przetwornicy*/
-    bool CompressorSwitch( bool State, range_t const Notify = range_t::consist );/*! wl/wyl sprezarki*/
-    bool ChangeCompressorPreset( int const Change, range_t const Notify = range_t::consist );
-    bool HeatingSwitch( bool const State, range_t const Notify = range_t::consist );
-    void HeatingSwitch_( bool const State );
-    double EnginePowerSourceVoltage() const; // returns voltage of defined main engine power source
+	bool WaterPumpBreakerSwitch(bool State, range_t const Notify = range_t::consist); // water pump breaker state toggle
+	bool WaterPumpSwitch(bool State, range_t const Notify = range_t::consist); // water pump state toggle
+	bool WaterPumpSwitchOff(bool State, range_t const Notify = range_t::consist); // water pump state toggle
+	bool WaterHeaterBreakerSwitch(bool State, range_t const Notify = range_t::consist); // water heater breaker state toggle
+	bool WaterHeaterSwitch(bool State, range_t const Notify = range_t::consist); // water heater state toggle
+	bool WaterCircuitsLinkSwitch(bool State, range_t const Notify = range_t::consist); // water circuits link state toggle
+	bool FuelPumpSwitch(bool State, range_t const Notify = range_t::consist); // fuel pump state toggle
+	bool FuelPumpSwitchOff(bool State, range_t const Notify = range_t::consist); // fuel pump state toggle
+	bool OilPumpSwitch(bool State, range_t const Notify = range_t::consist); // oil pump state toggle
+	bool OilPumpSwitchOff(bool State, range_t const Notify = range_t::consist); // oil pump state toggle
+	bool MotorBlowersSwitch(bool State, end const Side, range_t const Notify = range_t::consist); // traction motor fan state toggle
+	bool MotorBlowersSwitchOff(bool State, end const Side, range_t const Notify = range_t::consist); // traction motor fan state toggle
+	bool CompartmentLightsSwitch(bool State, range_t const Notify = range_t::consist); // compartment lights state toggle
+	bool CompartmentLightsSwitchOff(bool State, range_t const Notify = range_t::consist); // compartment lights state toggle
+	bool MainSwitch(bool const State, range_t const Notify = range_t::consist); /*! wylacznik glowny*/
+	void MainSwitch_(bool const State);
+	bool MainSwitchCheck() const; // checks conditions for closing the line breaker
+	bool ConverterSwitch(bool State, range_t const Notify = range_t::consist); /*! wl/wyl przetwornicy*/
+	bool CompressorSwitch(bool State, range_t const Notify = range_t::consist); /*! wl/wyl sprezarki*/
+	bool ChangeCompressorPreset(int const Change, range_t const Notify = range_t::consist);
+	bool HeatingSwitch(bool const State, range_t const Notify = range_t::consist);
+	void HeatingSwitch_(bool const State);
+	double EnginePowerSourceVoltage() const; // returns voltage of defined main engine power source
 
-    /*-funkcje typowe dla lokomotywy elektrycznej*/
-    void LowVoltagePowerCheck( double const Deltatime );
-    void MainsCheck( double const Deltatime );
-    void PowerCouplersCheck( double const Deltatime, coupling const Coupling );
-    void ConverterCheck( double const Timestep ); // przetwornica
-    void HeatingCheck( double const Timestep );
-    void WaterPumpCheck( double const Timestep );
-    void WaterHeaterCheck( double const Timestep );
-    void FuelPumpCheck( double const Timestep );
-    void OilPumpCheck( double const Timestep );
-    void MotorBlowersCheck( double const Timestep );
-    void PantographsCheck( double const Timestep );
-    void LightsCheck( double const Timestep );
-    bool FuseOn( range_t const Notify = range_t::consist ); //bezpiecznik nadamiary
+	/*-funkcje typowe dla lokomotywy elektrycznej*/
+	void LowVoltagePowerCheck(double const Deltatime);
+	void MainsCheck(double const Deltatime);
+	void PowerCouplersCheck(double const Deltatime, coupling const Coupling);
+	void ConverterCheck(double const Timestep); // przetwornica
+	void HeatingCheck(double const Timestep);
+	void WaterPumpCheck(double const Timestep);
+	void WaterHeaterCheck(double const Timestep);
+	void FuelPumpCheck(double const Timestep);
+	void OilPumpCheck(double const Timestep);
+	void MotorBlowersCheck(double const Timestep);
+	void PantographsCheck(double const Timestep);
+	void LightsCheck(double const Timestep);
+	bool FuseOn(range_t const Notify = range_t::consist); // bezpiecznik nadamiary
 	bool FuseFlagCheck(void) const; // sprawdzanie flagi nadmiarowego
 	void FuseOff(void); // wylaczenie nadmiarowego
-    bool UniversalResetButton( int const Button, range_t const Notify = range_t::consist );
-    bool RelayReset( int const Relays, range_t const Notify = range_t::consist ); // resets specified relays
-    double ShowCurrent( int AmpN ) const; //pokazuje bezwgl. wartosc pradu na wybranym amperomierzu
-	double ShowCurrentP(int AmpN) const;  //pokazuje bezwgl. wartosc pradu w wybranym pojezdzie                                                             //Q 20160722
+	bool UniversalResetButton(int const Button, range_t const Notify = range_t::consist);
+	bool RelayReset(int const Relays, range_t const Notify = range_t::consist); // resets specified relays
+	double ShowCurrent(int AmpN) const; // pokazuje bezwgl. wartosc pradu na wybranym amperomierzu
+	double ShowCurrentP(int AmpN) const; // pokazuje bezwgl. wartosc pradu w wybranym pojezdzie                                                             //Q 20160722
 
-								 /*!o pokazuje bezwgl. wartosc obrotow na obrotomierzu jednego z 3 pojazdow*/
-								 /*function ShowEngineRotation(VehN:int): integer; //Ra 2014-06: przeniesione do C++*/
-								 /*funkcje uzalezniajace sile pociagowa od predkosci: v2n, n2r, current, momentum*/
+	/*!o pokazuje bezwgl. wartosc obrotow na obrotomierzu jednego z 3 pojazdow*/
+	/*function ShowEngineRotation(VehN:int): integer; //Ra 2014-06: przeniesione do C++*/
+	/*funkcje uzalezniajace sile pociagowa od predkosci: v2n, n2r, current, momentum*/
 	double v2n(void);
 	double Current(double n, double U);
 	double Momentum(double I);
 	double MomentumF(double I, double Iw, int SCP);
 
-	bool CutOffEngine(void); //odlaczenie udszkodzonych silnikow
-							 /*funkcje automatycznego rozruchu np EN57*/
-	bool MaxCurrentSwitch(bool State, range_t const Notify = range_t::consist ); //przelacznik pradu wysokiego rozruchu
-	bool MinCurrentSwitch(bool State); //przelacznik pradu automatycznego rozruchu
-	bool AutoRelaySwitch(bool State); //przelacznik automatycznego rozruchu
-	bool AutoRelayCheck();//symulacja automatycznego rozruchu
-    bool MotorConnectorsCheck();
-	bool ResistorsFlagCheck(void) const; //sprawdzenie kontrolki oporow rozruchowych NBMX
+	bool CutOffEngine(void); // odlaczenie udszkodzonych silnikow
+	/*funkcje automatycznego rozruchu np EN57*/
+	bool MaxCurrentSwitch(bool State, range_t const Notify = range_t::consist); // przelacznik pradu wysokiego rozruchu
+	bool MinCurrentSwitch(bool State); // przelacznik pradu automatycznego rozruchu
+	bool AutoRelaySwitch(bool State); // przelacznik automatycznego rozruchu
+	bool AutoRelayCheck(); // symulacja automatycznego rozruchu
+	bool MotorConnectorsCheck();
+	bool ResistorsFlagCheck(void) const; // sprawdzenie kontrolki oporow rozruchowych NBMX
 
-    bool OperatePantographsValve( operation_t const State, range_t const Notify = range_t::consist );
-    bool OperatePantographValve( end const End, operation_t const State, range_t const Notify = range_t::consist );
-    bool DropAllPantographs( bool const State, range_t const Notify = range_t::consist );
+	bool OperatePantographsValve(operation_t const State, range_t const Notify = range_t::consist);
+	bool OperatePantographValve(end const End, operation_t const State, range_t const Notify = range_t::consist);
+	bool DropAllPantographs(bool const State, range_t const Notify = range_t::consist);
 
-	void CheckEIMIC(double dt); //sprawdzenie i zmiana nastawy zintegrowanego nastawnika jazdy/hamowania
+	void CheckEIMIC(double dt); // sprawdzenie i zmiana nastawy zintegrowanego nastawnika jazdy/hamowania
 	void CheckSpeedCtrl(double dt);
 	void SpeedCtrlButton(int button);
 	void SpeedCtrlInc();
 	void SpeedCtrlDec();
-    bool SpeedCtrlPowerInc();
-    bool SpeedCtrlPowerDec();
+	bool SpeedCtrlPowerInc();
+	bool SpeedCtrlPowerDec();
 
-							   /*-funkcje typowe dla lokomotywy spalinowej z przekladnia mechaniczna*/
+	/*-funkcje typowe dla lokomotywy spalinowej z przekladnia mechaniczna*/
 	bool dizel_EngageSwitch(double state);
 	bool dizel_EngageChange(double dt);
 	bool dizel_AutoGearCheck(void);
 	double dizel_fillcheck(int mcp, double dt);
 	double dizel_Momentum(double dizel_fill, double n, double dt);
-	double dizel_MomentumRetarder(double n, double dt);  // moment hamowania retardera
-    void dizel_HeatSet( float const Value );
-    void dizel_Heat( double const dt );
-    bool dizel_StartupCheck();
-    bool dizel_Update(double dt);
+	double dizel_MomentumRetarder(double n, double dt); // moment hamowania retardera
+	void dizel_HeatSet(float const Value);
+	void dizel_Heat(double const dt);
+	bool dizel_StartupCheck();
+	bool dizel_Update(double dt);
 
 	/* funckje dla wagonow*/
-    bool AssignLoad( std::string const &Name, float const Amount = 0.f );
+	bool AssignLoad(std::string const &Name, float const Amount = 0.f);
 	bool LoadingDone(double LSpeed, std::string const &Loadname);
-    bool PermitDoors( side const Door, bool const State = true, range_t const Notify = range_t::consist );
-    void PermitDoors_( side const Door, bool const State = true );
-    bool ChangeDoorPermitPreset( int const Change, range_t const Notify = range_t::consist );
-    bool PermitDoorStep( bool const State, range_t const Notify = range_t::consist );
-    bool ChangeDoorControlMode( bool const State, range_t const Notify = range_t::consist );
-    bool OperateDoors( side const Door, bool const State, range_t const Notify = range_t::consist );
-    bool LockDoors( bool const State, range_t const Notify = range_t::consist );
-    bool signal_departure( bool const State, range_t const Notify = range_t::consist ); // toggles departure warning
-    void update_doors( double const Deltatime ); // door controller update
+	bool PermitDoors(side const Door, bool const State = true, range_t const Notify = range_t::consist);
+	void PermitDoors_(side const Door, bool const State = true);
+	bool ChangeDoorPermitPreset(int const Change, range_t const Notify = range_t::consist);
+	bool PermitDoorStep(bool const State, range_t const Notify = range_t::consist);
+	bool ChangeDoorControlMode(bool const State, range_t const Notify = range_t::consist);
+	bool OperateDoors(side const Door, bool const State, range_t const Notify = range_t::consist);
+	bool LockDoors(bool const State, range_t const Notify = range_t::consist);
+	bool signal_departure(bool const State, range_t const Notify = range_t::consist); // toggles departure warning
+	void update_doors(double const Deltatime); // door controller update
 
-    /* funkcje dla samochodow*/
+	/* funkcje dla samochodow*/
 	bool ChangeOffsetH(double DeltaOffset);
 
 	/*funkcje ladujace pliki opisujace pojazd*/
-	bool LoadFIZ(std::string chkpath);                                                               //Q 20160717    bool LoadChkFile(std::string chkpath);
-    bool CheckLocomotiveParameters( bool ReadyFlag, int Dir );
-    std::string EngineDescription( int what ) const;
-private:
-    void LoadFIZ_Param( std::string const &line );
-    void LoadFIZ_Load( std::string const &line );
-    void LoadFIZ_Dimensions( std::string const &line );
-    void LoadFIZ_Wheels( std::string const &line );
-    void LoadFIZ_Brake( std::string const &line );
-    void LoadFIZ_Doors( std::string const &line );
-    void LoadFIZ_BuffCoupl( std::string const &line, int const Index );
-    void LoadFIZ_TurboPos( std::string const &line );
-    void LoadFIZ_Cntrl( std::string const &line );
+	bool LoadFIZ(std::string chkpath); // Q 20160717    bool LoadChkFile(std::string chkpath);
+	bool CheckLocomotiveParameters(bool ReadyFlag, int Dir);
+	std::string EngineDescription(int what) const;
+
+  private:
+	void LoadFIZ_Param(std::string const &line);
+	void LoadFIZ_Load(std::string const &line);
+	void LoadFIZ_Dimensions(std::string const &line);
+	void LoadFIZ_Wheels(std::string const &line);
+	void LoadFIZ_Brake(std::string const &line);
+	void LoadFIZ_Doors(std::string const &line);
+	void LoadFIZ_BuffCoupl(std::string const &line, int const Index);
+	void LoadFIZ_TurboPos(std::string const &line);
+	void LoadFIZ_Cntrl(std::string const &line);
 	void LoadFIZ_Blending(std::string const &line);
 	void LoadFIZ_DCEMUED(std::string const &line);
 	void LoadFIZ_SpringBrake(std::string const &line);
-    void LoadFIZ_Light( std::string const &line );
+	void LoadFIZ_Light(std::string const &line);
 	void LoadFIZ_Headlights(std::string const &Line);
-    void LoadFIZ_Clima( std::string const &line );
-    void LoadFIZ_Power( std::string const &Line );
-	void LoadFIZ_SpeedControl( std::string const &Line );
-    void LoadFIZ_Engine( std::string const &Input );
-    void LoadFIZ_Switches( std::string const &Input );
-    void LoadFIZ_MotorParamTable( std::string const &Input );
-    void LoadFIZ_Circuit( std::string const &Input );
-    void LoadFIZ_AI( std::string const &Input );
-    void LoadFIZ_RList( std::string const &Input );
+	void LoadFIZ_Clima(std::string const &line);
+	void LoadFIZ_Power(std::string const &Line);
+	void LoadFIZ_SpeedControl(std::string const &Line);
+	void LoadFIZ_Engine(std::string const &Input);
+	void LoadFIZ_Switches(std::string const &Input);
+	void LoadFIZ_MotorParamTable(std::string const &Input);
+	void LoadFIZ_Circuit(std::string const &Input);
+	void LoadFIZ_AI(std::string const &Input);
+	void LoadFIZ_RList(std::string const &Input);
 	void LoadFIZ_UCList(std::string const &Input);
-    void LoadFIZ_DList( std::string const &Input );
-    void LoadFIZ_FFList( std::string const &Input );
-    void LoadFIZ_FFEDList( std::string const &Input );
+	void LoadFIZ_DList(std::string const &Input);
+	void LoadFIZ_FFList(std::string const &Input);
+	void LoadFIZ_FFEDList(std::string const &Input);
 	void LoadFIZ_WiperList(std::string const &Input);
-    void LoadFIZ_LightsList( std::string const &Input );
+	void LoadFIZ_LightsList(std::string const &Input);
 	void LoadFIZ_DimmerList(std::string const &Input);
 	void LoadFIZ_CompressorList(std::string const &Input);
-    void LoadFIZ_PowerParamsDecode( TPowerParameters &Powerparameters, std::string const Prefix, std::string const &Input );
-    TPowerType LoadFIZ_PowerDecode( std::string const &Power );
-    TPowerSource LoadFIZ_SourceDecode( std::string const &Source );
-    TEngineType LoadFIZ_EngineDecode( std::string const &Engine );
-    bool readMPT0( std::string const &line );
-    bool readMPT( std::string const &line );                                             //Q 20160717
-    bool readMPTElectricSeries( std::string const &line );
-    bool readMPTDieselElectric( std::string const &line );
-    bool readMPTDieselEngine( std::string const &line );
-	bool readBPT(/*int const ln,*/ std::string const &line);                                             //Q 20160721
-    bool readRList( std::string const &Input );
+	void LoadFIZ_PowerParamsDecode(TPowerParameters &Powerparameters, std::string const Prefix, std::string const &Input);
+	TPowerType LoadFIZ_PowerDecode(std::string const &Power);
+	TPowerSource LoadFIZ_SourceDecode(std::string const &Source);
+	TEngineType LoadFIZ_EngineDecode(std::string const &Engine);
+	bool readMPT0(std::string const &line);
+	bool readMPT(std::string const &line); // Q 20160717
+	bool readMPTElectricSeries(std::string const &line);
+	bool readMPTDieselElectric(std::string const &line);
+	bool readMPTDieselEngine(std::string const &line);
+	bool readBPT(/*int const ln,*/ std::string const &line); // Q 20160721
+	bool readRList(std::string const &Input);
 	bool readUCList(std::string const &Input);
-    bool readDList( std::string const &line );
+	bool readDList(std::string const &line);
 	bool readDMList(std::string const &line);
 	bool readV2NMAXList(std::string const &line);
 	bool readHTCList(std::string const &line);
 	bool readPmaxList(std::string const &line);
-    bool readFFList( std::string const &line );
-    bool readFFEDList( std::string const &line );
-    bool readWWList( std::string const &line );
-    bool readWiperList( std::string const &line );
+	bool readFFList(std::string const &line);
+	bool readFFEDList(std::string const &line);
+	bool readWWList(std::string const &line);
+	bool readWiperList(std::string const &line);
 	bool readDimmerList(std::string const &line);
-    bool readLightsList( std::string const &Input );
+	bool readLightsList(std::string const &Input);
 	bool readCompressorList(std::string const &Input);
-    void BrakeValveDecode( std::string const &s );                                                            //Q 20160719
-	void BrakeSubsystemDecode();                                                                     //Q 20160719
+	void BrakeValveDecode(std::string const &s); // Q 20160719
+	void BrakeSubsystemDecode(); // Q 20160719
 };
 
-//double Distance(TLocation Loc1, TLocation Loc2, TDimension Dim1, TDimension Dim2);
+// double Distance(TLocation Loc1, TLocation Loc2, TDimension Dim1, TDimension Dim2);
 
-namespace simulation {
+namespace simulation
+{
 
 using weights_table = std::unordered_map<std::string, float>;
 
 extern weights_table Weights;
 
-} // simulation
+} // namespace simulation
