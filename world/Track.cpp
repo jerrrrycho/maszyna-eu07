@@ -2087,7 +2087,7 @@ bool TTrack::IsGroupable()
     return true;
 };
 
-bool Equal(glm::dvec3 v1, glm::dvec3 *v2)
+bool Equal(const glm::dvec3 v1, const glm::dvec3 *v2)
 { // sprawdzenie odległości punktów
     // Ra: powinno być do 100cm wzdłuż toru i ze 2cm w poprzek (na prostej może nie być długiego
     // kawałka)
@@ -2102,7 +2102,7 @@ bool Equal(glm::dvec3 v1, glm::dvec3 *v2)
     // return (SquareMagnitude(v1-*v2)<0.00012); //0.011^2=0.00012
 };
 
-int TTrack::TestPoint(glm::dvec3 *Point)
+int TTrack::TestPoint(const glm::dvec3 *Point)
 { // sprawdzanie, czy tory można połączyć
     switch (eType)
     {

@@ -308,7 +308,7 @@ public:
     }
     double WidthTotal();
     bool IsGroupable();
-	int TestPoint(glm::dvec3 *Point);
+	int TestPoint(const glm::dvec3 *Point);
     void MovedUp1(float const dh);
     void VelocitySet(float v);
     double VelocityGet();

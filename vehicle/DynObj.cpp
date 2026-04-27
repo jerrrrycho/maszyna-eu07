@@ -8744,10 +8744,9 @@ vehicle_table::update( double Deltatime, int Iterationcount ) {
 // legacy method, checks for presence and height of traction wire for specified vehicle
 void
 vehicle_table::update_traction( TDynamicObject *Vehicle ) {
-    // TODO: Why glm::make_vec3 and glm::value_ptr?
-    auto const vFront = glm::make_vec3( glm::value_ptr(Vehicle->VectorFront()) ); // wektor normalny dla płaszczyzny ruchu pantografu
-    auto const vUp = glm::make_vec3( glm::value_ptr(Vehicle->VectorUp()) ); // wektor pionu pudła (pochylony od pionu na przechyłce)
-    auto const vLeft = glm::make_vec3( glm::value_ptr(Vehicle->VectorLeft()) ); // wektor odległości w bok (odchylony od poziomu na przechyłce)
+	auto const vFront = Vehicle->VectorFront(); // wektor normalny dla płaszczyzny ruchu pantografu
+	auto const vUp = Vehicle->VectorUp(); // wektor pionu pudła (pochylony od pionu na przechyłce)
+	auto const vLeft = Vehicle->VectorLeft(); // wektor odległości w bok (odchylony od poziomu na przechyłce)
     auto const position = Vehicle->GetPosition(); // współrzędne środka pojazdu
 
     for( int pantographindex = 0; pantographindex < Vehicle->iAnimType[ ANIM_PANTS ]; ++pantographindex ) {
