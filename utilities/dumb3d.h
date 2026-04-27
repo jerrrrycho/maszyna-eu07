@@ -19,14 +19,7 @@ namespace Math3D
 
     inline glm::dmat4 BasisChange(glm::dvec3 u, glm::dvec3 v, glm::dvec3 n)
     {
-	    glm::dmat4 M(1.0);
-
-	    M[0] = glm::dvec4(u, 0.0); // kolumna 0
-	    M[1] = glm::dvec4(v, 0.0); // kolumna 1
-	    M[2] = glm::dvec4(n, 0.0); // kolumna 2
-	    M[3] = glm::dvec4(0.0, 0.0, 0.0, 1.0); // kolumna 3
-
-	    return M;
+	    return glm::dmat4{glm::dvec4(u.x, v.x, n.x, 0.0), glm::dvec4(u.y, v.y, n.y, 0.0), glm::dvec4(u.z, v.z, n.z, 0.0), glm::dvec4(0.0, 0.0, 0.0, 1.0)}; // 4 columns; first rows: u, v, n
     }
 
     inline glm::dmat4 BasisChange(glm::dvec3 v, glm::dvec3 n)

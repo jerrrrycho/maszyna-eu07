@@ -9525,7 +9525,7 @@ glm::dvec3 TTrain::MirrorPosition(bool lewe)
 	       glm::dvec4(
             mvOccupied->Dim.W * ( 0.5 * shiftdirection ) + ( 0.2 * shiftdirection ),
             1.5 + Cabine[iCabn].CabPos1.y,
-            interpolate( Cabine[ iCabn ].CabPos1.z , Cabine[ iCabn ].CabPos2.z, 0.5 ), 0.0 );
+            interpolate( Cabine[ iCabn ].CabPos1.z , Cabine[ iCabn ].CabPos2.z, 0.5 ), 1.0);
 };
 
 void TTrain::DynamicSet(TDynamicObject *d)
