@@ -631,8 +631,8 @@ std::pair<int, int> TSubModel::Load(cParser &parser, bool dynamic)
 							{
 								// jeśli pierwszy trójkąt będzie zdegenerowany, to zostanie usunięty i nie ma co sprawdzać
 								// length2 is better than length for comparing because it does not require sqrt function
-								if ((glm::length2((vertex)->position - (vertex - 1)->position) > 1000.0 * 1000.0) || (glm::length2((vertex - 1)->position - (vertex - 2)->position) > 1000.0 * 1000.0) ||
-								    (glm::length2((vertex - 2)->position - (vertex)->position) > 1000.0 * 1000.0))
+								if ((glm::length2((vertex)->position - (vertex - 1)->position) > sq(1000.0)) || (glm::length2((vertex - 1)->position - (vertex - 2)->position) > sq(1000.0)) ||
+								    (glm::length2((vertex - 2)->position - (vertex)->position) > sq(1000.0)))
 								{
 									// jeżeli są dalej niż 2km od siebie //Ra 15-01:
 									// obiekt wstawiany nie powinien być większy niż 300m (trójkąty terenu w E3D mogą mieć 1.5km)

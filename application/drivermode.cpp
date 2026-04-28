@@ -569,7 +569,7 @@ void driver_mode::update_camera(double const Deltatime)
 			Camera.Reset(); // likwidacja obrotów - patrzy horyzontalnie na południe
 			if (Camera.m_owner == nullptr)
 			{
-				if (controlled && glm::length2(controlled->GetPosition() - Camera.Pos) < 1500 * 1500) // length2 is better than length for comparing because it does not require sqrt function
+				if (controlled && glm::length2(controlled->GetPosition() - Camera.Pos) < sq(1500)) // length2 is better than length for comparing because it does not require sqrt function
 				{
 					// gdy bliżej niż 1.5km
 					Camera.LookAt = controlled->GetPosition() + 0.4 * controlled->VectorUp() * controlled->MoverParameters->Dim.H;
@@ -583,7 +583,7 @@ void driver_mode::update_camera(double const Deltatime)
 					if (d && pDynamicNearest)
 					{
 						// jeśli jakiś jest znaleziony wcześniej
-						if (100.0 * glm::length2(d->GetPosition() - Camera.Pos) > glm::length2(pDynamicNearest->GetPosition() - Camera.Pos)) // length2 is better than length for comparing because it does not require sqrt function
+						if (sq(10.0) * glm::length2(d->GetPosition() - Camera.Pos) > glm::length2(pDynamicNearest->GetPosition() - Camera.Pos)) // length2 is better than length for comparing because it does not require sqrt function
 						{
 							d = pDynamicNearest; // jeśli najbliższy nie jest 10 razy bliżej niż
 						}

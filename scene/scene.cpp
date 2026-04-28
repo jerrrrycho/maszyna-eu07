@@ -285,7 +285,7 @@ basic_cell::insert( shape_node Shape ) {
          && ( shapedata.rangesquared_max == targetshapedata.rangesquared_max )
         // ...and located close to each other (within arbitrary limit of 25m)
 		    // length2 is better than length for comparing because it does not require sqrt function
-         && ( glm::length2( shapedata.area.center - targetshapedata.area.center ) < 25.0 * 25.0 ) ) {
+         && ( glm::length2( shapedata.area.center - targetshapedata.area.center ) < sq(25.0) ) ) {
 
             if( true == targetshape.merge( Shape ) ) {
                 // if the shape was merged there's nothing left to do
@@ -312,7 +312,7 @@ basic_cell::insert( lines_node Lines ) {
          && ( linesdata.rangesquared_max == targetlinesdata.rangesquared_max )
         // ...and located close to each other (within arbitrary limit of 10m)
 		    // length2 is better than length for comparing because it does not require sqrt function
-         && ( glm::length2( linesdata.area.center - targetlinesdata.area.center ) < 10.0 * 10.0) ) {
+         && ( glm::length2( linesdata.area.center - targetlinesdata.area.center ) < sq(10.0) ) ) {
 
             if( true == targetlines.merge( Lines ) ) {
                 // if the shape was merged there's nothing left to do
@@ -701,7 +701,7 @@ basic_section::update_traction( TDynamicObject *Vehicle, int const Pantographind
 
     for( auto &cell : m_cells ) {
         // we reject early cells which aren't within our area of interest
-        if( glm::length2( cell.area().center - pantographposition ) < ( ( cell.area().radius + radius ) * ( cell.area().radius + radius ) ) ) {
+        if( glm::length2( cell.area().center - pantographposition ) < sq(cell.area().radius + radius) ) {
             cell.update_traction( Vehicle, Pantographindex );
         }
     }
@@ -713,7 +713,7 @@ basic_section::update_events( glm::dvec3 const &Location, float const Radius ) {
 
     for( auto &cell : m_cells ) {
 
-        if( glm::length2( cell.area().center - Location ) < ( ( cell.area().radius + Radius ) * ( cell.area().radius + Radius ) ) ) {
+        if( glm::length2( cell.area().center - Location ) < sq(cell.area().radius + Radius) ) {
             // we reject cells which aren't within our area of interest
             cell.update_events();
         }
@@ -726,7 +726,7 @@ basic_section::update_sounds( glm::dvec3 const &Location, float const Radius ) {
 
     for( auto &cell : m_cells ) {
 
-        if( glm::length2( cell.area().center - Location ) < ( ( cell.area().radius + Radius ) * ( cell.area().radius + Radius ) ) ) {
+        if( glm::length2( cell.area().center - Location ) < sq(cell.area().radius + Radius) ) {
             // we reject cells which aren't within our area of interest
             cell.update_sounds();
         }
@@ -739,7 +739,7 @@ basic_section::radio_stop( glm::dvec3 const &Location, float const Radius ) {
 
     for( auto &cell : m_cells ) {
 
-        if( glm::length2( cell.area().center - Location ) < ( ( cell.area().radius + Radius ) * ( cell.area().radius + Radius ) ) ) {
+        if( glm::length2( cell.area().center - Location ) < sq(cell.area().radius + Radius) ) {
             // we reject cells which aren't within our area of interest
             cell.radio_stop();
         }
@@ -854,7 +854,7 @@ basic_section::find( glm::dvec3 const &Point, float const Radius, bool const Onl
 
     for( auto &cell : m_cells ) {
         // we reject early cells which aren't within our area of interest
-        if( glm::length2( cell.area().center - Point ) > ( ( cell.area().radius + Radius ) * ( cell.area().radius + Radius ) ) ) {
+        if( glm::length2( cell.area().center - Point ) > sq(cell.area().radius + Radius) ) {
             continue;
         }
         std::tie( vehiclefound, distancefound ) = cell.find( Point, Radius, Onlycontrolled, Findbycoupler );
@@ -900,7 +900,7 @@ basic_section::find( glm::dvec3 const &Point, TTraction const *Other, int const 
 
     for( auto &cell : m_cells ) {
         // we reject early cells which aren't within our area of interest
-        if( glm::length2( cell.area().center - Point ) > ( ( cell.area().radius + radius ) * ( cell.area().radius + radius ) ) ) {
+        if( glm::length2( cell.area().center - Point ) > sq(cell.area().radius + radius) ) {
             continue;
         }
         std::tie( tractionfound, endpointfound, distancefound ) = cell.find( Point, Other, Currentdirection );
@@ -1477,7 +1477,7 @@ basic_region::sections( glm::dvec3 const &Point, float const Radius ) {
 
             auto *section { m_sections[ row * EU07_REGIONSIDESECTIONCOUNT + column ] };
             if( ( section != nullptr )
-             && ( glm::length2( section->area().center - Point ) <= ( ( section->area().radius + padding + Radius ) * ( section->area().radius + padding + Radius ) ) ) ) {
+             && ( glm::length2( section->area().center - Point ) <= sq( section->area().radius + padding + Radius ) ) ) {
 
                 m_scratchpad.sections.emplace_back( section );
             }

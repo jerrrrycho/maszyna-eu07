@@ -71,7 +71,7 @@ basic_precipitation::update() {
     }
     // ... from camera jump to another location
 	// length2 is better than length for comparing because it does not require sqrt function
-    if( glm::length2( cameramove ) > 100.0 * 100.0 )
+    if( glm::length2( cameramove ) > sq(100.0) )
     {
         cameramove = glm::dvec3{ 0.0 };
     }

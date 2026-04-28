@@ -363,7 +363,7 @@ sound_source::play( int const Flags ) {
 
     if( m_range != -1 ) {
         auto const cutoffrange { std::abs( m_range * 5 ) };
-        if( glm::length2( location() - Global.pCamera.Pos ) > std::min( 2750.f * 2750.f, cutoffrange * cutoffrange ) ) {
+		if( glm::length2( location() - Global.pCamera.Pos ) > std::min( sq(2750.f), sq(cutoffrange) ) ) {
             // while we drop sounds from beyond sensible and/or audible range
             // we act as if it was activated normally, meaning no need to include the opening bookend in subsequent calls
             m_playbeginning = false;

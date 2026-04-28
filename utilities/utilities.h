@@ -29,6 +29,11 @@ template <typename T> T sign(T x)
 #define DegToRad(a) ((M_PI / 180.0) * (a)) //(a) w nawiasie, bo może być dodawaniem
 #define RadToDeg(r) ((180.0 / M_PI) * (r))
 
+template <typename T> constexpr T sq(T v)
+{
+	return v * v;
+}
+
 namespace paths
 {
 inline constexpr const char *scenery = "scenery/";

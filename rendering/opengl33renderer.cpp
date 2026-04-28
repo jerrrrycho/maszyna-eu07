@@ -26,8 +26,8 @@ http://mozilla.org/MPL/2.0/.
 
 //#define EU07_DEBUG_OPENGL
 
-int const EU07_PICKBUFFERSIZE{ 1024 }; // size of (square) textures bound with the pick framebuffer
-int const EU07_REFLECTIONFIDELITYOFFSET { 250 }; // artificial increase of range for reflection pass detail reduction
+int constexpr EU07_PICKBUFFERSIZE{ 1024 }; // size of (square) textures bound with the pick framebuffer
+int constexpr EU07_REFLECTIONFIDELITYOFFSET { 250 }; // artificial increase of range for reflection pass detail reduction
 
 void GLAPIENTRY
 ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam ) {
@@ -1293,7 +1293,7 @@ bool opengl33_renderer::Render_reflections(viewport_config &vp)
 
     auto const timestamp{ Timer::GetRenderTime() };
     if( ( timestamp - m_environmentupdatetime < Global.reflectiontune.update_interval )
-     && ( glm::length2( m_renderpass.pass_camera.position() - m_environmentupdatelocation ) < 1000.0 * 1000.0 ) ) // length2 is better than length for comparing because it does not require sqrt function
+     && ( glm::length2( m_renderpass.pass_camera.position() - m_environmentupdatelocation ) < sq(1000.0)) ) // length2 is better than length for comparing because it does not require sqrt function
 	{
         // run update every 5+ mins of simulation time, or at least 1km from the last location
         return false;
@@ -2690,7 +2690,7 @@ void opengl33_renderer::Render(scene::shape_node const &Shape, bool const Ignore
             // reflection mode draws simplified version of the shapes, by artificially increasing view range
             distancesquared =
                 // TBD, TODO: bind offset value with setting variable?
-                ( EU07_REFLECTIONFIDELITYOFFSET * EU07_REFLECTIONFIDELITYOFFSET )
+                sq(EU07_REFLECTIONFIDELITYOFFSET)
                 + glm::length2( ( data.area.center - m_renderpass.pass_camera.position() ) );
 /*
                 // TBD: take into account distance multipliers?
@@ -2764,7 +2764,7 @@ void opengl33_renderer::Render(TAnimModel *Instance)
             return;
         }
         // TBD, TODO: bind offset value with setting variable?
-        distancesquared += ( EU07_REFLECTIONFIDELITYOFFSET * EU07_REFLECTIONFIDELITYOFFSET );
+        distancesquared += sq(EU07_REFLECTIONFIDELITYOFFSET);
         break;
     }
 	default:
@@ -2779,7 +2779,7 @@ void opengl33_renderer::Render(TAnimModel *Instance)
 	}
      // crude way to reject early items too far to affect the output (mostly relevant for shadow passes)
     auto const drawdistancethreshold{ m_renderpass.draw_range + 250 };
-    if( distancesquared > drawdistancethreshold * drawdistancethreshold ) {
+    if( distancesquared > sq(drawdistancethreshold) ) {
         return;
     }
    // second stage visibility cull, reject modelstoo far away to be noticeable
@@ -2857,7 +2857,7 @@ bool opengl33_renderer::Render(TDynamicObject *Dynamic)
         }
         // TBD, TODO: bind offset value with setting variable?
         // NOTE: combined 'squared' distance doesn't equal actual squared (distance + offset) but, eh
-        squaredistance += ( EU07_REFLECTIONFIDELITYOFFSET * EU07_REFLECTIONFIDELITYOFFSET );
+        squaredistance += sq(EU07_REFLECTIONFIDELITYOFFSET);
         break;
     }
 	default:
@@ -2869,7 +2869,7 @@ bool opengl33_renderer::Render(TDynamicObject *Dynamic)
 	}
     // crude way to reject early items too far to affect the output (mostly relevant for shadow and reflection passes)
     auto const drawdistancethreshold{ m_renderpass.draw_range + 250 };
-    if( squaredistance > drawdistancethreshold * drawdistancethreshold ) {
+    if( squaredistance > sq(drawdistancethreshold) ) {
         return false;
     }
     // second stage visibility cull, reject vehicles too far away to be noticeable
@@ -3779,7 +3779,7 @@ void opengl33_renderer::Render_Alpha(TAnimModel *Instance)
 	}
      // crude way to reject early items too far to affect the output (mostly relevant for shadow passes)
     auto const drawdistancethreshold{ m_renderpass.draw_range + 250 };
-    if( distancesquared > drawdistancethreshold * drawdistancethreshold ) {
+    if( distancesquared > sq(drawdistancethreshold) ) {
         return;
     }
    // second stage visibility cull, reject modelstoo far away to be noticeable
@@ -4619,7 +4619,7 @@ void opengl33_renderer::Update_Lights(light_array &Lights)
 			break;
 		}
 		auto const lightoffset = glm::vec3{scenelight.position - camera};
-		if (glm::length2(lightoffset) > 1000.f * 1000.f) {
+		if (glm::length2(lightoffset) > sq(1000.f)) {
 			// we don't care about lights past arbitrary limit of 1 km.
 			// but there could still be weaker lights which are closer, so keep looking
 			continue;

@@ -9724,7 +9724,7 @@ TTrain::radio_message( sound_source *Message, int const Channel ) {
 
     auto const soundrange { Message->range() };
     if( ( soundrange > 0 )
-     && ( glm::length2( Message->location() - glm::dvec3 { DynamicObject->GetPosition() } ) > ( soundrange * soundrange ) ) ) {
+     && ( glm::length2( Message->location() - glm::dvec3 { DynamicObject->GetPosition() } ) > sq(soundrange) ) ) {
         // skip message playback if the receiver is outside of the emitter's range
         return;
     }

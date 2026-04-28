@@ -150,7 +150,7 @@ openal_source::sync_with( sound_properties const &State ) {
             is_multipart ?
                 EU07_SOUND_CUTOFFRANGE : // we keep multi-part sounds around longer, to minimize restarts as the sounds get out and back in range
                 sound_range * 7.5f );
-        if( glm::length2( sound_distance ) > std::min( ( cutoffrange * cutoffrange ), ( EU07_SOUND_CUTOFFRANGE * EU07_SOUND_CUTOFFRANGE ) ) ) {
+        if( glm::length2( sound_distance ) > std::min( sq(cutoffrange), sq(EU07_SOUND_CUTOFFRANGE) ) ) {
             stop();
             sync = sync_state::bad_distance; // flag sync failure for the controller
             return;
@@ -406,7 +406,7 @@ openal_renderer::update( double const Deltatime ) {
             cameramove = glm::dvec3{ 0.0 };
         }
         // ... from camera jump to another location
-        if( glm::length2( cameramove ) > 100.0 * 100.0) { // length2 is better than length for comparing because it does not require sqrt function
+        if( glm::length2( cameramove ) > sq(100.0)) { // length2 is better than length for comparing because it does not require sqrt function
             cameramove = glm::dvec3{ 0.0 };
         }
         m_listenervelocity = limit_velocity( cameramove / Deltatime );
