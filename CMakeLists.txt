@@ -104,7 +104,6 @@ set(SOURCES
 "vehicle/Camera.cpp"
 "vehicle/Driver.cpp"
 "application/driverhints.cpp"
-"utilities/dumb3d.cpp"
 "vehicle/DynObj.cpp"
 "EU07.cpp"
 "export_e3d_standalone.cpp"

@@ -59,12 +59,12 @@ double GetDistanceToEvent(TTrack const *track, basic_event const *event, double 
     double seg_len = scan_dir > 0 ? 0.0 : 1.0;
     double const dzielnik = 1.0 / segment->GetLength();// rozdzielczosc mniej wiecej 1m
     int krok = 0; // krok obliczeniowy do sprawdzania czy odwracamy
-    len2 = (pos_event - segment->FastGetPoint(seg_len)).LengthSquared();
+	len2 = glm::length2(pos_event - segment->FastGetPoint(seg_len));
     do
     {
         len1 = len2;
         seg_len += scan_dir > 0 ? dzielnik : -dzielnik;
-        len2 = (pos_event - segment->FastGetPoint(seg_len)).LengthSquared();
+		len2 = glm::length2(pos_event - segment->FastGetPoint(seg_len));
         ++krok;
     } while ((len1 > len2) && (seg_len >= dzielnik && (seg_len <= (1.0 - dzielnik))));
     //trzeba sprawdzić czy seg_len nie osiągnął skrajnych wartości, bo wtedy
@@ -196,7 +196,7 @@ void TSpeedPos::Clear()
     fVelNext = -1.0; // prędkość bez ograniczeń
 	fSectionVelocityDist = 0.0; //brak długości
     fDist = 0.0;
-    vPos = Math3D::vector3(0, 0, 0);
+    vPos = glm::dvec3(0, 0, 0);
     trTrack = NULL; // brak wskaźnika
 };
 
@@ -534,11 +534,10 @@ void TController::TableTraceRoute(double fDistance, TDynamicObject *pVehicle)
         }
         // account for the fact tracing begins from active axle, not the actual front of the vehicle
         // NOTE: position of the couplers is modified by track offset, but the axles ain't, so we need to account for this as well
-        fTrackLength -= (
+        fTrackLength -= glm::length(
             pVehicle->AxlePositionGet()
             - pVehicle->RearPosition()
-            + pVehicle->VectorLeft() * pVehicle->MoverParameters->OffsetTrackH )
-            .Length();
+            + pVehicle->VectorLeft() * pVehicle->MoverParameters->OffsetTrackH );
         // aktualna odległość ma być ujemna gdyż jesteśmy na końcu składu
         fCurrentDistance = -fLength - fTrackLength;
         fTrackLength = pTrack->Length(); //skasowanie zmian w zmiennej żeby poprawnie liczyło w dalszych krokach
@@ -5369,7 +5368,7 @@ basic_event * TController::CheckTrackEventBackward(double fDirection, TTrack *Tr
 { // sprawdzanie eventu w torze, czy jest sygnałowym - skanowanie do tyłu
     // NOTE: this method returns only one event which meets the conditions, due to limitations in the caller
     // TBD, TODO: clean up the caller and return all suitable events, as in theory things will go awry if the track has more than one signal
-    auto const dir{ Vehicle->VectorFront() * Vehicle->DirectionGet() };
+    auto const dir{ Vehicle->VectorFront() * (double)Vehicle->DirectionGet() };
     auto const pos{ End == end::front ? Vehicle->RearPosition() : Vehicle->HeadPosition() };
     auto const &eventsequence { ( fDirection * Eventdirection > 0 ? Track->m_events2 : Track->m_events1 ) };
     for( auto const &event : eventsequence ) {
@@ -5510,7 +5509,7 @@ TCommandType TController::BackwardScan( double const Range )
     // opcjonalnie może być skanowanie od "wskaźnika" z przodu, np. W5, Tm=Ms1, koniec toru wg
     // drugiej osi w kierunku ruchu
     auto const *scantrack{BackwardTraceRoute(scandist, scandir, pVehicles[end::front], e)};
-    auto const dir{startdir *
+    auto const dir{(double)startdir *
                    pVehicles[end::front]->VectorFront()}; // wektor w kierunku jazdy/szukania
 
     // jeśli wstecz wykryto koniec toru to raczej nic się nie da w takiej sytuacji zrobić
@@ -5546,7 +5545,7 @@ TCommandType TController::BackwardScan( double const Range )
         }
         scanvel = e->input_value(1); // prędkość przy tym semaforze
         // przeliczamy odległość od semafora - potrzebne by były współrzędne początku składu
-        scandist = sem.Length() - 2; // 2m luzu przy manewrach wystarczy
+        scandist = glm::length(sem) - 2; // 2m luzu przy manewrach wystarczy
         if (scandist < 0)
         {
             // ujemnych nie ma po co wysyłać

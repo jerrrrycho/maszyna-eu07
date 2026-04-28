@@ -15,7 +15,6 @@ http://mozilla.org/MPL/2.0/.
 #pragma once
 
 #include "utilities/Classes.h"
-#include "utilities/dumb3d.h"
 #include "utilities/Float3d.h"
 #include "model/Model3d.h"
 #include "vehicle/DynObj.h"
@@ -52,11 +51,11 @@ class TAnimContainer : std::enable_shared_from_this<TAnimContainer>
     friend TAnimModel;
 
   private:
-    Math3D::vector3 vRotateAngles; // dla obrotów Eulera
-    Math3D::vector3 vDesiredAngles;
+	glm::vec3 vRotateAngles; // dla obrotów Eulera
+	glm::vec3 vDesiredAngles;
     double fRotateSpeed;
-    Math3D::vector3 vTranslation;
-    Math3D::vector3 vTranslateTo;
+	glm::dvec3 vTranslation;
+	glm::dvec3 vTranslateTo;
     double fTranslateSpeed; // może tu dać wektor?
     float4 qCurrent; // aktualny interpolowany
     float4 qStart; // pozycja początkowa (0 dla interpolacji)
@@ -82,8 +81,8 @@ class TAnimContainer : std::enable_shared_from_this<TAnimContainer>
     inline
     std::string NameGet() {
         return (pSubModel ? pSubModel->pName : ""); };
-    void SetRotateAnim( Math3D::vector3 vNewRotateAngles, double fNewRotateSpeed);
-    void SetTranslateAnim( Math3D::vector3 vNewTranslate, double fNewSpeed);
+    void SetRotateAnim( glm::vec3 vNewRotateAngles, double fNewRotateSpeed);
+    void SetTranslateAnim( glm::dvec3 vNewTranslate, double fNewSpeed);
     void AnimSetVMD(double fNewSpeed);
     void PrepareModel();
     void UpdateModel();
@@ -93,8 +92,8 @@ class TAnimContainer : std::enable_shared_from_this<TAnimContainer>
     double AngleGet() {
         return vRotateAngles.z; }; // jednak ostatnia, T3D ma inny układ
     inline
-    Math3D::vector3 TransGet() {
-        return Math3D::vector3(-vTranslation.x, vTranslation.z, vTranslation.y); }; // zmiana, bo T3D ma inny układ
+    glm::dvec3 TransGet() {
+        return glm::dvec3(-vTranslation.x, vTranslation.z, vTranslation.y); }; // zmiana, bo T3D ma inny układ
     inline
     void WillBeAnimated() {
         if (pSubModel)

@@ -12,6 +12,7 @@ http://mozilla.org/MPL/2.0/.
 
 #include "utilities/Globals.h"
 #include "utilities/utilities.h"
+#include "utilities/glmHelpers.h"
 #include "Console.h"
 #include "utilities/Timer.h"
 #include "vehicle/Driver.h"
@@ -20,7 +21,8 @@ http://mozilla.org/MPL/2.0/.
 
 //---------------------------------------------------------------------------
 
-void TCamera::Init( Math3D::vector3 const &NPos, Math3D::vector3 const &NAngle/*, TCameraType const NType*/, TDynamicObject *Owner ) {
+void TCamera::Init(glm::vec3 const &NPos, glm::vec3 const &NAngle /*, TCameraType const NType*/, TDynamicObject *Owner)
+{
 
     vUp = { 0, 1, 0 };
     Velocity = { 0, 0, 0 };
@@ -170,7 +172,7 @@ void TCamera::Update()
      || ( true == DebugCameraFlag ) ) {
         // free movement position update
         auto movement { Velocity };
-        movement.RotateY( Angle.y );
+		movement = RotateY(movement, (double)Angle.y);
         Pos += movement * 5.0 * deltatime;
     }
     else {
@@ -193,7 +195,7 @@ void TCamera::Update()
             movement.y = -movement.y;
         }
 */
-        movement.RotateY( Angle.y );
+		movement = RotateY(movement, (double)Angle.y);
 
         m_owneroffset += movement * deltatime;
     }
@@ -201,19 +203,16 @@ void TCamera::Update()
 
 bool TCamera::SetMatrix( glm::dmat4 &Matrix ) {
 
-    Matrix = glm::rotate( Matrix, -Angle.z, glm::dvec3( 0.0, 0.0, 1.0 ) ); // po wyłączeniu tego kręci się pojazd, a sceneria nie
-    Matrix = glm::rotate( Matrix, -Angle.x, glm::dvec3( 1.0, 0.0, 0.0 ) );
-    Matrix = glm::rotate( Matrix, -Angle.y, glm::dvec3( 0.0, 1.0, 0.0 ) ); // w zewnętrznym widoku: kierunek patrzenia
+    Matrix = glm::rotate(Matrix, -(double)Angle.x, glm::dvec3(1, 0, 0));
+	Matrix = glm::rotate(Matrix, -(double)Angle.y, glm::dvec3(0, 1, 0)); // w zewnętrznym widoku: kierunek patrzenia
+	Matrix = glm::rotate(Matrix, -(double)Angle.z, glm::dvec3(0, 0, 1)); // po wyłączeniu tego kręci się pojazd, a sceneria nie
 
     if( ( m_owner != nullptr ) && ( false == DebugCameraFlag ) ) {
 
-        Matrix *= glm::lookAt(
-            glm::dvec3{ Pos },
-            glm::dvec3{ LookAt },
-            glm::dvec3{ vUp } );
+        Matrix *= glm::lookAt(Pos, glm::dvec3{ LookAt }, glm::dvec3{ vUp } );
     }
     else {
-        Matrix = glm::translate( Matrix, glm::dvec3{ -Pos } ); // nie zmienia kierunku patrzenia
+        Matrix = glm::translate( Matrix, -Pos ); // nie zmienia kierunku patrzenia
     }
 
     return true;
@@ -221,12 +220,12 @@ bool TCamera::SetMatrix( glm::dmat4 &Matrix ) {
 
 void TCamera::RaLook()
 { // zmiana kierunku patrzenia - przelicza Yaw
-    Math3D::vector3 where = LookAt - Pos /*+ Math3D::vector3(0, 3, 0)*/; // trochę w górę od szyn
+    auto where = glm::dvec3(LookAt )- Pos /*+ Math3D::vector3(0, 3, 0)*/; // trochę w górę od szyn
     if( ( where.x != 0.0 ) || ( where.z != 0.0 ) ) {
         Angle.y = atan2( -where.x, -where.z ); // kąt horyzontalny
         m_rotationoffsets.y = 0.0;
     }
-    double l = Math3D::Length3(where);
+    double l = glm::length(where);
     if( l > 0.0 ) {
         Angle.x = asin( where.y / l ); // kąt w pionie
         m_rotationoffsets.x = 0.0;

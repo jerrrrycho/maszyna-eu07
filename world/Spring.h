@@ -10,7 +10,6 @@ http://mozilla.org/MPL/2.0/.
 #ifndef ParticlesH
 #define ParticlesH
 
-#include "utilities/dumb3d.h"
 /*
 #define STATIC_THRESHOLD 0.17f
 const double m_Kd = 0.02f; // DAMPING FACTOR
@@ -28,8 +27,8 @@ public:
     //    void Init(TParticnp1, TParticle *np2, double nKs= 0.5f, double nKd= 0.002f,
     //    double nrestLen= -1.0f);
     void Init(double nKs = 0.5f, double nKd = 0.002f);
-    Math3D::vector3 ComputateForces( Math3D::vector3 const &pPosition1, Math3D::vector3 const &pPosition2);
-//private:
+	glm::dvec3 ComputateForces(glm::dvec3 const &pPosition1, glm::dvec3 const &pPosition2);
+	//private:
 // members
     double restLen { 0.01 }; // LENGTH OF SPRING AT REST
     double Ks { 0.0 }; // SPRING CONSTANT

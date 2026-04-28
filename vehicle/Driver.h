@@ -156,7 +156,7 @@ class TSpeedPos
     int iFlags{ spNone }; // flagi typu wpisu do tabelki
 	bool bMoved{ false }; // czy przesunięty (dotyczy punktu zatrzymania w peronie)
 	double fMoved{ 0.0 }; // ile przesunięty (dotyczy punktu zatrzymania w peronie) 
-    Math3D::vector3 vPos; // współrzędne XYZ do liczenia odległości
+    glm::dvec3 vPos; // współrzędne XYZ do liczenia odległości
     struct
     {
         TTrack *trTrack{ nullptr }; // wskaźnik na tor o zmiennej prędkości (zwrotnica, obrotnica)
@@ -490,7 +490,7 @@ private:
     std::string Order2Str( TOrders Order ) const;
 // members
     std::string m_assignment;
-    Math3D::vector3 vCommandLocation; // polozenie wskaznika, sygnalizatora lub innego obiektu do ktorego odnosi sie komenda // NOTE: not used
+    glm::dvec3 vCommandLocation; // polozenie wskaznika, sygnalizatora lub innego obiektu do ktorego odnosi sie komenda // NOTE: not used
     TOrders OrderList[ maxorders ]; // lista rozkazów
     int OrderPos = 0,
         OrderTop = 0; // rozkaz aktualny oraz wolne miejsce do wstawiania nowych

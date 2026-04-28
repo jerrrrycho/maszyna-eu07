@@ -10,7 +10,6 @@ http://mozilla.org/MPL/2.0/.
 #pragma once
 
 #include "utilities/Classes.h"
-#include "utilities/dumb3d.h"
 #include "utilities/Float3d.h"
 #include "rendering/geometrybank.h"
 #include "model/material.h"
@@ -191,9 +190,9 @@ public:
 	int TriangleAdd(TModel3d *m, material_handle tex, int tri);
 #endif
 	void SetRotate(float3 vNewRotateAxis, float fNewAngle);
-	void SetRotateXYZ( Math3D::vector3 vNewAngles);
+	void SetRotateXYZ(glm::vec3 vNewAngles);
 	void SetRotateXYZ(float3 vNewAngles);
-	void SetTranslate( Math3D::vector3 vNewTransVector);
+	void SetTranslate(glm::vec3 vNewTransVector);
 	void SetTranslate(float3 vNewTransVector);
 	void SetRotateIK1(float3 vNewAngles);
 	TSubModel * GetFromName( std::string const &search, bool i = true );

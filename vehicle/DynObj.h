@@ -87,7 +87,7 @@ class TAnimValveGear
 class TAnimPant
 { // współczynniki do animacji pantografu
   public:
-    Math3D::vector3 vPos; // Ra: współrzędne punktu zerowego pantografu (X dodatnie dla przedniego)
+    glm::dvec3 vPos; // Ra: współrzędne punktu zerowego pantografu (X dodatnie dla przedniego)
     double fLenL1; // długość dolnego ramienia 1, odczytana z modelu
     double fLenU1; // długość górnego ramienia 1, odczytana z modelu
     double fLenL2; // długość dolnego ramienia 2, odczytana z modelu
@@ -194,9 +194,9 @@ public:
     static bool bDynamicRemove; // moved from ground
 
 //private: // położenie pojazdu w świecie oraz parametry ruchu
-    Math3D::vector3 vPosition; // Ra: pozycja pojazdu liczona zaraz po przesunięciu
-    Math3D::vector3 vCoulpler[ 2 ]; // współrzędne sprzęgów do liczenia zderzeń czołowych
-    Math3D::vector3 vUp, vFront, vLeft; // wektory jednostkowe ustawienia pojazdu
+    glm::dvec3 vPosition; // Ra: pozycja pojazdu liczona zaraz po przesunięciu
+	glm::dvec3 vCoulpler[2]; // współrzędne sprzęgów do liczenia zderzeń czołowych
+	glm::dvec3 vUp, vFront, vLeft; // wektory jednostkowe ustawienia pojazdu
     int iDirection; // kierunek pojazdu względem czoła składu (1=zgodny,0=przeciwny)
     TTrackShape ts; // parametry toru przekazywane do fizyki
     TTrackParam tp; // parametry toru przekazywane do fizyki
@@ -204,7 +204,7 @@ public:
     TTrackFollower Axle1; // oś z tyłu (od sprzęgu 1)
     int iAxleFirst; // numer pierwszej osi w kierunku ruchu (oś wiążąca pojazd z torem i wyzwalająca eventy)
     float fAxleDist; // rozstaw wózków albo osi do liczenia proporcji zacienienia
-    Math3D::vector3 modelRot; // obrot pudła względem świata - do przeanalizowania, czy potrzebne!!!
+	glm::vec3 modelRot; // obrot pudła względem świata - do przeanalizowania, czy potrzebne!!!
     TDynamicObject * ABuFindNearestObject(glm::vec3 pos, TTrack *Track, TDynamicObject *MyPointer, int &CouplNr );
     
     glm::dvec3 m_future_movement;
@@ -214,7 +214,7 @@ public:
     // parametry położenia pojazdu dostępne publicznie
     std::string asTrack; // nazwa toru początkowego; wywalić?
     std::string asDestination; // dokąd pojazd ma być kierowany "(stacja):(tor)"
-	Math3D::matrix4x4 mMatrix; // macierz przekształcenia do renderowania modeli
+	glm::dmat4 mMatrix; // macierz przekształcenia do renderowania modeli
     TMoverParameters *MoverParameters; // parametry fizyki ruchu oraz przeliczanie
     inline TDynamicObject *NextConnected() { return MoverParameters->Neighbours[ end::rear ].vehicle; }; // pojazd podłączony od strony sprzęgu 1 (kabina -1)
     inline TDynamicObject *PrevConnected() { return MoverParameters->Neighbours[ end::front ].vehicle; }; // pojazd podłączony od strony sprzęgu 0 (kabina 1)
@@ -304,7 +304,7 @@ private:
     void toggle_lights(); // switch light levels for registered interior sections
   private: // Ra: ciąg dalszy animacji, dopiero do ogarnięcia
     // ABuWozki 060504
-    Math3D::vector3 bogieRot[2]; // Obroty wozkow w/m korpusu
+    glm::vec3 bogieRot[2]; // Obroty wozkow w/m korpusu
     TSubModel *smBogie[2]; // Wyszukiwanie max 2 wozkow
     TSubModel *smWahacze[4]; // wahacze (np. nogi, dźwignia w drezynie)
     TSubModel *smBrakeMode; // Ra 15-01: nastawa hamulca też
@@ -316,7 +316,7 @@ private:
     TSubModel *smBuforLewy[2];
     TSubModel *smBuforPrawy[2];
     TAnimValveGear *pValveGear;
-    Math3D::vector3 vFloor; // podłoga dla ładunku
+	glm::dvec3 vFloor; // podłoga dla ładunku
   public:
     TAnim *pants; // indeks obiektu animującego dla pantografu 0
     TAnim *wipers; // wycieraczki
@@ -644,7 +644,7 @@ private:
 	TDynamicObject * ABuScanNearestObject(glm::vec3 pos, TTrack *Track, double ScanDir, double ScanDist,
 	                                                int &CouplNr);
     TDynamicObject * GetFirstDynamic(int cpl_type, int cf = 1);
-    void ABuSetModelShake( Math3D::vector3 mShake);
+	void ABuSetModelShake(glm::dvec3 mShake);
 
     // McZapkie-010302
     TController *Mechanik;
@@ -693,20 +693,20 @@ private:
     void Move(double fDistance);
     void FastMove(double fDistance);
     void RenderSounds();
-    inline Math3D::vector3 GetPosition() const {
+    inline glm::dvec3 GetPosition() const {
         return vPosition; };
     // converts location from vehicle coordinates frame to world frame
-    inline Math3D::vector3 GetWorldPosition( Math3D::vector3 const &Location ) const {
-        return vPosition + mMatrix * Location; }
+    inline glm::dvec3 GetWorldPosition( glm::dvec3 const &Location ) const {
+        return vPosition + glm::dvec3(mMatrix * glm::dvec4(Location, 1.0)); }
     // pobranie współrzędnych czoła
-    inline Math3D::vector3 HeadPosition() const {
+    inline glm::dvec3 HeadPosition() const {
         return vCoulpler[iDirection ^ 1]; };
     // pobranie współrzędnych tyłu
-    inline Math3D::vector3 RearPosition() const {
+    inline glm::dvec3 RearPosition() const {
         return vCoulpler[iDirection]; };
-    inline Math3D::vector3 CouplerPosition( end const End ) const {
+    inline glm::dvec3 CouplerPosition( end const End ) const {
         return vCoulpler[ End ]; }
-    inline Math3D::vector3 AxlePositionGet() {
+    inline glm::dvec3 AxlePositionGet() {
         return iAxleFirst ?
             Axle1.pPosition :
             Axle0.pPosition; };
@@ -716,22 +716,22 @@ private:
     // TODO: check if scanning takes into account direction when selecting axle
     // if it does, replace the version above
     // if it doesn't, fix it so it does
-    inline Math3D::vector3 AxlePositionGet() {
+    inline glm::dvec3 AxlePositionGet() {
         return (
             iDirection ?
                 ( iAxleFirst ? Axle1.pPosition : Axle0.pPosition ) :
                 ( iAxleFirst ? Axle0.pPosition : Axle1.pPosition ) ); }
 */
-    inline Math3D::vector3 VectorFront() const {
+    inline glm::dvec3 VectorFront() const {
         return vFront; };
-    inline Math3D::vector3 VectorUp() const {
+    inline glm::dvec3 VectorUp() const {
         return vUp; };
-    inline Math3D::vector3 VectorLeft() const {
+    inline glm::dvec3 VectorLeft() const {
         return vLeft; };
     inline double const * Matrix() const {
-        return mMatrix.readArray(); };
+        return glm::value_ptr(mMatrix); };
     inline double * Matrix() {
-        return mMatrix.getArray(); };
+        return glm::value_ptr(mMatrix); };
     inline double GetVelocity() const {
         return MoverParameters->Vel; };
     inline double GetLength() const {
@@ -834,8 +834,8 @@ public:
     std::pair<double, double> shake_angles() const;
 // members
     struct baseshake_config {
-        Math3D::vector3 angle_scale { 0.05, 0.0, 0.1 }; // roll, yaw, pitch
-        Math3D::vector3 jolt_scale { 0.2, 0.2, 0.1 };
+        glm::vec3 angle_scale { 0.05, 0.0, 0.1 }; // roll, yaw, pitch
+		glm::vec3 jolt_scale{0.2, 0.2, 0.1};
         double jolt_limit { 2.0f };
     } BaseShake;
     struct engineshake_config {
@@ -855,11 +855,11 @@ public:
     bool IsHunting { false };
     TSpring ShakeSpring;
     struct shake_state {
-        Math3D::vector3 velocity {}; // current shaking vector
-        Math3D::vector3 offset {}; // overall shake-driven offset from base position
+		glm::dvec3 velocity{}; // current shaking vector
+		glm::dvec3 offset{}; // overall shake-driven offset from base position
     } ShakeState;
 
-	Math3D::vector3 modelShake;
+	glm::dvec3 modelShake;
 };
 
 

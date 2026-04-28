@@ -28,9 +28,9 @@ http://mozilla.org/MPL/2.0/.
 #include "rendering/screenshot.h"
 #include <imgui/imgui_impl_opengl2.h>
 
-int const EU07_PICKBUFFERSIZE { 1024 }; // size of (square) textures bound with the pick framebuffer
-int const EU07_ENVIRONMENTBUFFERSIZE { 256 }; // size of (square) environmental cube map texture
-int const EU07_REFLECTIONFIDELITYOFFSET { 250 }; // artificial increase of range for reflection pass detail reduction
+int constexpr EU07_PICKBUFFERSIZE { 1024 }; // size of (square) textures bound with the pick framebuffer
+int constexpr EU07_ENVIRONMENTBUFFERSIZE { 256 }; // size of (square) environmental cube map texture
+int constexpr EU07_REFLECTIONFIDELITYOFFSET { 250 }; // artificial increase of range for reflection pass detail reduction
 
 float const EU07_OPACITYDEFAULT { 0.5f };
 
@@ -806,7 +806,7 @@ bool opengl_renderer::Render_lowpoly( TDynamicObject *Dynamic, float const Squar
         ::glPushMatrix();
 
         ::glTranslated( originoffset.x, originoffset.y, originoffset.z );
-        ::glMultMatrixd( Dynamic->mMatrix.getArray() );
+        ::glMultMatrixd( glm::value_ptr(Dynamic->mMatrix) );
 
         m_renderspecular = true; // vehicles are rendered with specular component. static models without, at least for the time being
     }
@@ -867,7 +867,7 @@ bool opengl_renderer::Render_coupler_adapter( TDynamicObject *Dynamic, float con
 
     if( Dynamic->m_coupleradapters[ End ] == nullptr ) { return false; }
 
-    auto const position { Math3D::vector3 {
+    auto const position { glm::dvec3 {
         0.f,
         Dynamic->MoverParameters->Couplers[ End ].adapter_height,
         ( Dynamic->MoverParameters->Couplers[ End ].adapter_length + Dynamic->MoverParameters->Dim.L * 0.5 ) * ( End == end::front ? 1 : -1 ) } };
@@ -892,7 +892,7 @@ opengl_renderer::Render_reflections() {
 
     auto const timestamp { Timer::GetRenderTime() };
     if( ( timestamp - m_environmentupdatetime < Global.reflectiontune.update_interval )
-     && ( glm::length( m_renderpass.camera.position() - m_environmentupdatelocation ) < 1000.0 ) ) {
+     && ( glm::length2( m_renderpass.camera.position() - m_environmentupdatelocation ) < sq(1000.0)) ) {
         // run update every 5+ mins of simulation time, or at least 1km from the last location
         return false;
     }
@@ -1041,8 +1041,8 @@ opengl_renderer::setup_pass( renderpass_config &Config, rendermode const Mode, f
             camera.position() = Global.pCamera.Pos - glm::dvec3 { lightvector };
             viewmatrix *= glm::lookAt(
                 camera.position(),
-                glm::dvec3 { Global.pCamera.Pos },
-                glm::dvec3 { 0.f, 1.f, 0.f } );
+                Global.pCamera.Pos,
+                glm::dvec3 { 0, 1, 0 } );
             // projection
             auto const maphalfsize { std::min( 10.f, Config.draw_range * 0.5f ) };
             camera.projection() *=
@@ -2277,14 +2277,14 @@ opengl_renderer::Render( scene::shape_node const &Shape, bool const Ignorerange 
             case rendermode::shadows:
             case rendermode::cabshadows: {
                 // 'camera' for the light pass is the light source, but we need to draw what the 'real' camera sees
-                distancesquared = Math3D::SquareMagnitude( ( data.area.center - Global.pCamera.Pos ) / Global.ZoomFactor ) / Global.fDistanceFactor;
+                distancesquared = glm::length2( ( data.area.center - Global.pCamera.Pos ) / (double)Global.ZoomFactor ) / Global.fDistanceFactor;
                 break;
             }
             case rendermode::reflections: {
                 // reflection mode draws simplified version of the shapes, by artificially increasing view range
                 distancesquared =
                     // TBD, TODO: bind offset value with setting variable?
-                    ( EU07_REFLECTIONFIDELITYOFFSET * EU07_REFLECTIONFIDELITYOFFSET )
+                    sq(EU07_REFLECTIONFIDELITYOFFSET)
                     // TBD: take into account distance multipliers?
                     + glm::length2( ( data.area.center - m_renderpass.camera.position() ) ) /* / Global.fDistanceFactor */;
                 break;
@@ -2360,7 +2360,7 @@ opengl_renderer::Render( TAnimModel *Instance ) {
                 return;
             }
             // TBD, TODO: bind offset value with setting variable?
-            distancesquared += ( EU07_REFLECTIONFIDELITYOFFSET * EU07_REFLECTIONFIDELITYOFFSET );
+            distancesquared += sq(EU07_REFLECTIONFIDELITYOFFSET);
             break;
         }
         default: {
@@ -2374,7 +2374,7 @@ opengl_renderer::Render( TAnimModel *Instance ) {
     }
     // crude way to reject early items too far to affect the output (mostly relevant for shadow passes)
     auto const drawdistancethreshold{ m_renderpass.draw_range + 250 };
-    if( distancesquared > drawdistancethreshold * drawdistancethreshold ) {
+    if( distancesquared > sq(drawdistancethreshold) ) {
         return;
     }
     // second stage visibility cull, reject modelstoo far away to be noticeable
@@ -2426,14 +2426,14 @@ opengl_renderer::Render( TDynamicObject *Dynamic ) {
             squaredistance = glm::length2( glm::vec3{ glm::dvec3{ Dynamic->vPosition - Global.pCamera.Pos } } / Global.ZoomFactor );
             if( false == FreeFlyModeFlag ) {
                 // filter out small details if we're in vehicle cab
-                squaredistance = std::max( 100.f * 100.f, squaredistance );
+                squaredistance = std::max( sq(100.f), squaredistance );
             }
             break;
         }
         case rendermode::cabshadows: {
             squaredistance = glm::length2( glm::vec3{ glm::dvec3{ Dynamic->vPosition - Global.pCamera.Pos } } / Global.ZoomFactor );
             // filter out small details
-            squaredistance = std::max( 100.f * 100.f, squaredistance );
+            squaredistance = std::max( sq(100.f), squaredistance );
             break;
         }
         case rendermode::reflections: {
@@ -2441,7 +2441,7 @@ opengl_renderer::Render( TDynamicObject *Dynamic ) {
             // it also ignores zoom settings and distance multipliers
             squaredistance =
                 std::max(
-                    100.f * 100.f,
+                    sq(100.f),
                     // TBD: take into account distance multipliers?
                     glm::length2( glm::vec3{ originoffset } ) /* / Global.fDistanceFactor */ );
             // NOTE: arbitrary draw range limit
@@ -2450,7 +2450,7 @@ opengl_renderer::Render( TDynamicObject *Dynamic ) {
             }
             // TBD, TODO: bind offset value with setting variable?
         // NOTE: combined 'squared' distance doesn't equal actual squared (distance + offset) but, eh
-            squaredistance += ( EU07_REFLECTIONFIDELITYOFFSET * EU07_REFLECTIONFIDELITYOFFSET );
+            squaredistance += sq(EU07_REFLECTIONFIDELITYOFFSET);
             break;
         }
         default: {
@@ -2461,7 +2461,7 @@ opengl_renderer::Render( TDynamicObject *Dynamic ) {
     }
     // crude way to reject early items too far to affect the output (mostly relevant for shadow and reflection passes)
     auto const drawdistancethreshold{ m_renderpass.draw_range + 250 };
-    if( squaredistance > drawdistancethreshold * drawdistancethreshold ) {
+    if( squaredistance > sq(drawdistancethreshold) ) {
         return false;
     }
     // second stage visibility cull, reject vehicles too far away to be noticeable
@@ -2480,7 +2480,7 @@ opengl_renderer::Render( TDynamicObject *Dynamic ) {
     ::glPushMatrix();
 
     ::glTranslated( originoffset.x, originoffset.y, originoffset.z );
-    ::glMultMatrixd( Dynamic->mMatrix.getArray() );
+    ::glMultMatrixd( glm::value_ptr(Dynamic->mMatrix) );
 
     switch( m_renderpass.draw_mode ) {
 
@@ -2593,7 +2593,7 @@ opengl_renderer::Render_cab( TDynamicObject const *Dynamic, float const Lightlev
 
         auto const originoffset = Dynamic->GetPosition() - m_renderpass.camera.position();
         ::glTranslated( originoffset.x, originoffset.y, originoffset.z );
-        ::glMultMatrixd( Dynamic->mMatrix.readArray() );
+        ::glMultMatrixd( glm::value_ptr(Dynamic->mMatrix) );
 
         switch( m_renderpass.draw_mode ) {
             case rendermode::color: {
@@ -2696,7 +2696,7 @@ opengl_renderer::Render( TModel3d *Model, material_data const *Material, float c
 }
 
 bool
-opengl_renderer::Render( TModel3d *Model, material_data const *Material, float const Squaredistance, Math3D::vector3 const &Position, glm::vec3 const &Angle ) {
+opengl_renderer::Render( TModel3d *Model, material_data const *Material, float const Squaredistance, glm::dvec3 const &Position, glm::vec3 const &Angle ) {
 
     ::glPushMatrix();
     ::glTranslated( Position.x, Position.y, Position.z );
@@ -3505,7 +3505,7 @@ opengl_renderer::Render_Alpha( TAnimModel *Instance ) {
     switch( m_renderpass.draw_mode ) {
         case rendermode::shadows: {
             // 'camera' for the light pass is the light source, but we need to draw what the 'real' camera sees
-            distancesquared = Math3D::SquareMagnitude( ( Instance->location() - Global.pCamera.Pos ) / Global.ZoomFactor ) / Global.fDistanceFactor;
+            distancesquared = glm::length2( ( Instance->location() - Global.pCamera.Pos ) / (double)Global.ZoomFactor ) / Global.fDistanceFactor;
             break;
         }
         default: {
@@ -3519,7 +3519,7 @@ opengl_renderer::Render_Alpha( TAnimModel *Instance ) {
     }
      // crude way to reject early items too far to affect the output (mostly relevant for shadow passes)
     auto const drawdistancethreshold{ m_renderpass.draw_range + 250 };
-    if( distancesquared > drawdistancethreshold * drawdistancethreshold ) {
+    if( distancesquared > sq(drawdistancethreshold) ) {
         return;
     }
    // second stage visibility cull, reject modelstoo far away to be noticeable
@@ -3549,7 +3549,7 @@ opengl_renderer::Render_Alpha( TTraction *Traction ) {
     switch( m_renderpass.draw_mode ) {
         case rendermode::shadows: {
             // 'camera' for the light pass is the light source, but we need to draw what the 'real' camera sees
-            distancesquared = Math3D::SquareMagnitude( ( Traction->location() - Global.pCamera.Pos ) / Global.ZoomFactor ) / Global.fDistanceFactor;
+            distancesquared = glm::length2( ( Traction->location() - Global.pCamera.Pos ) / Global.ZoomFactor ) / Global.fDistanceFactor;
             break;
         }
         default: {
@@ -3613,7 +3613,7 @@ opengl_renderer::Render_Alpha( scene::lines_node const &Lines ) {
     switch( m_renderpass.draw_mode ) {
         case rendermode::shadows: {
             // 'camera' for the light pass is the light source, but we need to draw what the 'real' camera sees
-            distancesquared = Math3D::SquareMagnitude( ( data.area.center - Global.pCamera.Pos ) / Global.ZoomFactor ) / Global.fDistanceFactor;
+            distancesquared = glm::length2( ( data.area.center - Global.pCamera.Pos ) / Global.ZoomFactor ) / Global.fDistanceFactor;
             break;
         }
         default: {
@@ -3675,7 +3675,7 @@ opengl_renderer::Render_Alpha( TDynamicObject *Dynamic ) {
     ::glPushMatrix();
 
     ::glTranslated( originoffset.x, originoffset.y, originoffset.z );
-    ::glMultMatrixd( Dynamic->mMatrix.getArray() );
+    ::glMultMatrixd( glm::value_ptr(Dynamic->mMatrix) );
 
     if( Dynamic->fShade > 0.0f ) {
         // change light level based on light level of the occupied track
@@ -3769,7 +3769,7 @@ opengl_renderer::Render_Alpha( TModel3d *Model, material_data const *Material, f
 }
 
 bool
-opengl_renderer::Render_Alpha( TModel3d *Model, material_data const *Material, float const Squaredistance, Math3D::vector3 const &Position, glm::vec3 const &Angle ) {
+opengl_renderer::Render_Alpha( TModel3d *Model, material_data const *Material, float const Squaredistance, glm::dvec3 const &Position, glm::vec3 const &Angle ) {
 
     ::glPushMatrix();
     ::glTranslated( Position.x, Position.y, Position.z );
@@ -4341,7 +4341,8 @@ opengl_renderer::Update_Lights( light_array &Lights ) {
             break;
         }
         auto const lightoffset = glm::vec3{ scenelight.position - camera };
-        if( glm::length( lightoffset ) > 1000.f ) {
+		// length2 is better than length for comparing because it does not require sqrt function
+        if( glm::length2( lightoffset ) > sq(1000.f)) {
             // we don't care about lights past arbitrary limit of 1 km.
             // but there could still be weaker lights which are closer, so keep looking
             continue;

@@ -302,7 +302,7 @@ smoke_source::location() const {
                   m_offset.x * m_owner.vehicle->VectorLeft()
                 + m_offset.y * m_owner.vehicle->VectorUp()
                 + m_offset.z * m_owner.vehicle->VectorFront() };
-            location += glm::dvec3{ m_owner.vehicle->GetPosition() };
+            location += m_owner.vehicle->GetPosition();
             break;
         }
         case owner_type::node: {

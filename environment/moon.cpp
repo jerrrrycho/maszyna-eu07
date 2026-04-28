@@ -136,7 +136,7 @@ void cMoon::move() {
     // mean anomaly
     m_body.mnanom = clamp_circular( 115.3654 + 13.0649929509 * daynumber ); // M, degrees
     // eccentricity
-    double const e = 0.054900;
+    double constexpr e = 0.054900;
     // eccentric anomaly
     double E0 = m_body.mnanom + radtodeg * e * std::sin( degtorad * m_body.mnanom ) * ( 1.0 + e * std::cos( degtorad * m_body.mnanom ) );
     double E1 = E0 - ( E0 - radtodeg * e * std::sin( degtorad * E0 ) - m_body.mnanom ) / ( 1.0 - e * std::cos( degtorad * E0 ) );
@@ -147,7 +147,7 @@ void cMoon::move() {
     double const E = E1;
     // lunar orbit plane rectangular coordinates
     double const xv = mndistance * ( std::cos( degtorad * E ) - e );
-    double const yv = mndistance * std::sin( degtorad * E ) * std::sqrt( 1.0 - e*e );
+    double const yv = mndistance * std::sin( degtorad * E ) * std::sqrt( 1.0 - sq(e) );
     // distance
 	m_body.distance = std::sqrt( xv*xv + yv*yv ); // r
     // true anomaly
