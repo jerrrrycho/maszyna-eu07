@@ -46,10 +46,10 @@ basic_cell::on_click( TAnimModel const *Instance ) {
 void
 basic_cell::update_traction( TDynamicObject *Vehicle, int const Pantographindex ) {
     // Winger 170204 - szukanie trakcji nad pantografami
-    auto const vFront = glm::make_vec3( Vehicle->VectorFront().getArray() ); // wektor normalny dla płaszczyzny ruchu pantografu
-    auto const vUp = glm::make_vec3( Vehicle->VectorUp().getArray() ); // wektor pionu pudła (pochylony od pionu na przechyłce)
-    auto const vLeft = glm::make_vec3( Vehicle->VectorLeft().getArray() ); // wektor odległości w bok (odchylony od poziomu na przechyłce)
-    auto const position = glm::dvec3 { Vehicle->GetPosition() }; // współrzędne środka pojazdu
+	auto const vFront = Vehicle->VectorFront(); // wektor normalny dla płaszczyzny ruchu pantografu
+	auto const vUp = Vehicle->VectorUp(); // wektor pionu pudła (pochylony od pionu na przechyłce)
+	auto const vLeft = Vehicle->VectorLeft(); // wektor odległości w bok (odchylony od poziomu na przechyłce)
+	auto const position = Vehicle->GetPosition(); // współrzędne środka pojazdu
 
     auto pantograph = Vehicle->pants[ Pantographindex ].fParamPants;
     auto const pantographposition = position + ( vLeft * pantograph->vPos.z ) + ( vUp * pantograph->vPos.y ) + ( vFront * pantograph->vPos.x );
@@ -284,7 +284,8 @@ basic_cell::insert( shape_node Shape ) {
         if( ( shapedata.rangesquared_min == targetshapedata.rangesquared_min )
          && ( shapedata.rangesquared_max == targetshapedata.rangesquared_max )
         // ...and located close to each other (within arbitrary limit of 25m)
-         && ( glm::length( shapedata.area.center - targetshapedata.area.center ) < 25.0 ) ) {
+		    // length2 is better than length for comparing because it does not require sqrt function
+         && ( glm::length2( shapedata.area.center - targetshapedata.area.center ) < sq(25.0) ) ) {
 
             if( true == targetshape.merge( Shape ) ) {
                 // if the shape was merged there's nothing left to do
@@ -310,7 +311,8 @@ basic_cell::insert( lines_node Lines ) {
         if( ( linesdata.rangesquared_min == targetlinesdata.rangesquared_min )
          && ( linesdata.rangesquared_max == targetlinesdata.rangesquared_max )
         // ...and located close to each other (within arbitrary limit of 10m)
-         && ( glm::length( linesdata.area.center - targetlinesdata.area.center ) < 10.0 ) ) {
+		    // length2 is better than length for comparing because it does not require sqrt function
+         && ( glm::length2( linesdata.area.center - targetlinesdata.area.center ) < sq(10.0) ) ) {
 
             if( true == targetlines.merge( Lines ) ) {
                 // if the shape was merged there's nothing left to do
@@ -516,15 +518,13 @@ basic_cell::find( glm::dvec3 const &Point, float const Radius, bool const Onlyco
 // finds a path with one of its ends located in specified point. returns: located path and id of the matching endpoint
 std::tuple<TTrack *, int>
 basic_cell::find( glm::dvec3 const &Point, TTrack const *Exclude ) const {
-
-    Math3D::vector3 point { Point.x, Point.y, Point.z }; // sad workaround until math classes unification
     int endpointid;
 
     for( auto *path : m_directories.paths ) {
 
         if( path == Exclude ) { continue; }
 
-        endpointid = path->TestPoint( &point );
+        endpointid = path->TestPoint( &Point );
         if( endpointid >= 0 ) {
 
             return { path, endpointid };
@@ -689,11 +689,10 @@ basic_section::on_click( TAnimModel const *Instance ) {
 // legacy method, finds and assigns traction piece(s) to pantographs of provided vehicle
 void
 basic_section::update_traction( TDynamicObject *Vehicle, int const Pantographindex ) {
-
-    auto const vFront = glm::make_vec3( Vehicle->VectorFront().getArray() ); // wektor normalny dla płaszczyzny ruchu pantografu
-    auto const vUp = glm::make_vec3( Vehicle->VectorUp().getArray() ); // wektor pionu pudła (pochylony od pionu na przechyłce)
-    auto const vLeft = glm::make_vec3( Vehicle->VectorLeft().getArray() ); // wektor odległości w bok (odchylony od poziomu na przechyłce)
-    auto const position = glm::dvec3{ Vehicle->GetPosition() }; // współrzędne środka pojazdu
+	auto const vFront = Vehicle->VectorFront(); // wektor normalny dla płaszczyzny ruchu pantografu
+	auto const vUp = Vehicle->VectorUp(); // wektor pionu pudła (pochylony od pionu na przechyłce)
+	auto const vLeft = Vehicle->VectorLeft(); // wektor odległości w bok (odchylony od poziomu na przechyłce)
+	auto const position = Vehicle->GetPosition(); // współrzędne środka pojazdu
 
     auto pantograph = Vehicle->pants[ Pantographindex ].fParamPants;
     auto const pantographposition = position + ( vLeft * pantograph->vPos.z ) + ( vUp * pantograph->vPos.y ) + ( vFront * pantograph->vPos.x );
@@ -702,7 +701,7 @@ basic_section::update_traction( TDynamicObject *Vehicle, int const Pantographind
 
     for( auto &cell : m_cells ) {
         // we reject early cells which aren't within our area of interest
-        if( glm::length2( cell.area().center - pantographposition ) < ( ( cell.area().radius + radius ) * ( cell.area().radius + radius ) ) ) {
+        if( glm::length2( cell.area().center - pantographposition ) < sq(cell.area().radius + radius) ) {
             cell.update_traction( Vehicle, Pantographindex );
         }
     }
@@ -714,7 +713,7 @@ basic_section::update_events( glm::dvec3 const &Location, float const Radius ) {
 
     for( auto &cell : m_cells ) {
 
-        if( glm::length2( cell.area().center - Location ) < ( ( cell.area().radius + Radius ) * ( cell.area().radius + Radius ) ) ) {
+        if( glm::length2( cell.area().center - Location ) < sq(cell.area().radius + Radius) ) {
             // we reject cells which aren't within our area of interest
             cell.update_events();
         }
@@ -727,7 +726,7 @@ basic_section::update_sounds( glm::dvec3 const &Location, float const Radius ) {
 
     for( auto &cell : m_cells ) {
 
-        if( glm::length2( cell.area().center - Location ) < ( ( cell.area().radius + Radius ) * ( cell.area().radius + Radius ) ) ) {
+        if( glm::length2( cell.area().center - Location ) < sq(cell.area().radius + Radius) ) {
             // we reject cells which aren't within our area of interest
             cell.update_sounds();
         }
@@ -740,7 +739,7 @@ basic_section::radio_stop( glm::dvec3 const &Location, float const Radius ) {
 
     for( auto &cell : m_cells ) {
 
-        if( glm::length2( cell.area().center - Location ) < ( ( cell.area().radius + Radius ) * ( cell.area().radius + Radius ) ) ) {
+        if( glm::length2( cell.area().center - Location ) < sq(cell.area().radius + Radius) ) {
             // we reject cells which aren't within our area of interest
             cell.radio_stop();
         }
@@ -855,7 +854,7 @@ basic_section::find( glm::dvec3 const &Point, float const Radius, bool const Onl
 
     for( auto &cell : m_cells ) {
         // we reject early cells which aren't within our area of interest
-        if( glm::length2( cell.area().center - Point ) > ( ( cell.area().radius + Radius ) * ( cell.area().radius + Radius ) ) ) {
+        if( glm::length2( cell.area().center - Point ) > sq(cell.area().radius + Radius) ) {
             continue;
         }
         std::tie( vehiclefound, distancefound ) = cell.find( Point, Radius, Onlycontrolled, Findbycoupler );
@@ -901,7 +900,7 @@ basic_section::find( glm::dvec3 const &Point, TTraction const *Other, int const 
 
     for( auto &cell : m_cells ) {
         // we reject early cells which aren't within our area of interest
-        if( glm::length2( cell.area().center - Point ) > ( ( cell.area().radius + radius ) * ( cell.area().radius + radius ) ) ) {
+        if( glm::length2( cell.area().center - Point ) > sq(cell.area().radius + radius) ) {
             continue;
         }
         std::tie( tractionfound, endpointfound, distancefound ) = cell.find( Point, Other, Currentdirection );
@@ -1058,10 +1057,10 @@ basic_region::update_sounds() {
 void
 basic_region::update_traction( TDynamicObject *Vehicle, int const Pantographindex ) {
     // TODO: convert vectors to transformation matrix and pass them down the chain along with calculated position
-    auto const vFront = glm::make_vec3( Vehicle->VectorFront().getArray() ); // wektor normalny dla płaszczyzny ruchu pantografu
-    auto const vUp = glm::make_vec3( Vehicle->VectorUp().getArray() ); // wektor pionu pudła (pochylony od pionu na przechyłce)
-    auto const vLeft = glm::make_vec3( Vehicle->VectorLeft().getArray() ); // wektor odległości w bok (odchylony od poziomu na przechyłce)
-    auto const position = glm::dvec3 { Vehicle->GetPosition() }; // współrzędne środka pojazdu
+	auto const vFront = Vehicle->VectorFront(); // wektor normalny dla płaszczyzny ruchu pantografu
+	auto const vUp = Vehicle->VectorUp(); // wektor pionu pudła (pochylony od pionu na przechyłce)
+	auto const vLeft = Vehicle->VectorLeft(); // wektor odległości w bok (odchylony od poziomu na przechyłce)
+	auto const position = Vehicle->GetPosition(); // współrzędne środka pojazdu
 
     auto p = Vehicle->pants[ Pantographindex ].fParamPants;
     auto const pant0 = position + ( vLeft * p->vPos.z ) + ( vUp * p->vPos.y ) + ( vFront * p->vPos.x );
@@ -1478,7 +1477,7 @@ basic_region::sections( glm::dvec3 const &Point, float const Radius ) {
 
             auto *section { m_sections[ row * EU07_REGIONSIDESECTIONCOUNT + column ] };
             if( ( section != nullptr )
-             && ( glm::length2( section->area().center - Point ) <= ( ( section->area().radius + padding + Radius ) * ( section->area().radius + padding + Radius ) ) ) ) {
+             && ( glm::length2( section->area().center - Point ) <= sq( section->area().radius + padding + Radius ) ) ) {
 
                 m_scratchpad.sections.emplace_back( section );
             }

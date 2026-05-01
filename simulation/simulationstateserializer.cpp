@@ -278,7 +278,7 @@ state_serializer::deserialize_camera( cParser &Input, scene::scratch_data &Scrat
     if( into < 10 ) { // przepisanie do odpowiedniego miejsca w tabelce
         Global.FreeCameraInit[ into ] = xyz;
         Global.FreeCameraInitAngle[ into ] =
-            Math3D::vector3(
+            glm::dvec3(
                 glm::radians( abc.x ),
                 glm::radians( abc.y ),
                 glm::radians( abc.z ) );

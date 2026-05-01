@@ -23,7 +23,6 @@ http://mozilla.org/MPL/2.0/.
 #include "utilities/Logs.h"
 #include "model/MdlMngr.h"
 #include "model/Model3d.h"
-#include "utilities/dumb3d.h"
 #include "utilities/Timer.h"
 #include "vehicle/Driver.h"
 #include "vehicle/DynObj.h"
@@ -564,12 +563,12 @@ TTrain::TTrain() {
     fPPress = fNPress = 0;
 
     // asMessage="";
-    pMechOffset = Math3D::vector3(0, 0, 0);
+	pMechOffset = glm::dvec3(0, 0, 0);
     fBlinkTimer = 0;
     fHaslerTimer = 0;
     DynamicSet(NULL); // ustawia wszystkie mv*
     //-----
-    pMechSittingPosition = Math3D::vector3(0, 0, 0); // ABu: 180404
+	pMechSittingPosition = glm::dvec3(0, 0, 0); // ABu: 180404
     fTachoTimer = 0.0; // włączenie skoków wskazań prędkościomierza
 
     //
@@ -5123,10 +5122,10 @@ void TTrain::OnCommand_redmarkerstoggle( TTrain *Train, command_data const &Comm
 
         if( vehicle == nullptr ) { return; }
 
+        auto locationHead = vehicle->HeadPosition() - glm::dvec3(Command.location); // TODO: Maybe command_data should be dvec3?
+		auto locationRear = vehicle->RearPosition() - glm::dvec3(Command.location);
         int const CouplNr {
-            clamp(
-                vehicle->DirectionGet()
-                * ( Math3D::LengthSquared3( vehicle->HeadPosition() - Command.location ) > Math3D::LengthSquared3( vehicle->RearPosition() - Command.location ) ?
+            clamp(vehicle->DirectionGet() * (glm::dot(locationHead, locationHead) > glm::dot(locationRear, locationRear) ?
                      1 :
                     -1 ),
                 0, 1 ) }; // z [-1,1] zrobić [0,1]
@@ -5148,11 +5147,10 @@ void TTrain::OnCommand_endsignalstoggle( TTrain *Train, command_data const &Comm
         auto *vehicle { std::get<TDynamicObject *>( simulation::Region->find_vehicle( Command.location, 10, false, true ) ) };
 
         if( vehicle == nullptr ) { return; }
-
         int const CouplNr {
             clamp(
                 vehicle->DirectionGet()
-                * ( Math3D::LengthSquared3( vehicle->HeadPosition() - Command.location ) > Math3D::LengthSquared3( vehicle->RearPosition() - Command.location ) ?
+                * ( glm::length2( vehicle->HeadPosition() - glm::dvec3(Command.location) ) > glm::length2( vehicle->RearPosition() - glm::dvec3(Command.location) ) ?
                      1 :
                     -1 ),
                 0, 1 ) }; // z [-1,1] zrobić [0,1]
@@ -9468,7 +9466,7 @@ bool TTrain::InitializeCab(int NewCabNo, std::string const &asFileName)
     {
 */
         // configure placement of sound emitters which aren't bound with any device model, and weren't placed manually
-        auto const caboffset { glm::dvec3 { ( Cabine[ cabindex ].CabPos1 + Cabine[ cabindex ].CabPos2 ) * 0.5 } +glm::dvec3 { 0, 1, 0 } };
+        auto const caboffset { glm::dvec3 { ( Cabine[ cabindex ].CabPos1 + Cabine[ cabindex ].CabPos2 ) * 0.5f } +glm::dvec3 { 0, 1, 0 } };
         // NOTE: since radiosound is an incomplete template not using std::optional it gets a special treatment
         if( m_radiosound.offset() == nullvector ) {
             m_radiosound.offset( btLampkaRadio.model_offset() );
@@ -9536,15 +9534,15 @@ bool TTrain::InitializeCab(int NewCabNo, std::string const &asFileName)
     return true;
 }
 
-Math3D::vector3 TTrain::MirrorPosition(bool lewe)
+glm::dvec3 TTrain::MirrorPosition(bool lewe)
 { // zwraca współrzędne widoku kamery z lusterka
     auto const shiftdirection { ( lewe ? -1 : 1 ) * ( iCabn == 2 ? 1 : -1 ) };
 
-    return DynamicObject->mMatrix
-        * Math3D::vector3(
+    return DynamicObject->mMatrix *
+	       glm::dvec4(
             mvOccupied->Dim.W * ( 0.5 * shiftdirection ) + ( 0.2 * shiftdirection ),
             1.5 + Cabine[iCabn].CabPos1.y,
-            interpolate( Cabine[ iCabn ].CabPos1.z , Cabine[ iCabn ].CabPos2.z, 0.5 ) );
+            interpolate( Cabine[ iCabn ].CabPos1.z , Cabine[ iCabn ].CabPos2.z, 0.5 ), 1.0);
 };
 
 void TTrain::DynamicSet(TDynamicObject *d)
@@ -9716,23 +9714,23 @@ TTrain::MoveToVehicle(TDynamicObject *target) {
 }
 
 // checks whether specified point is within boundaries of the active cab
-bool
-TTrain::point_inside( Math3D::vector3 const Point ) const {
+bool TTrain::point_inside(glm::dvec3 const Point) const
+{
 
     return ( Point.x >= Cabine[ iCabn ].CabPos1.x )       && ( Point.x <= Cabine[ iCabn ].CabPos2.x )
         && ( Point.y >= Cabine[ iCabn ].CabPos1.y + 0.5 ) && ( Point.y <= Cabine[ iCabn ].CabPos2.y + 1.8 )
         && ( Point.z >= Cabine[ iCabn ].CabPos1.z )       && ( Point.z <= Cabine[ iCabn ].CabPos2.z );
 }
 
-Math3D::vector3
-TTrain::clamp_inside( Math3D::vector3 const &Point ) const {
+glm::dvec3 TTrain::clamp_inside(glm::dvec3 const &Point) const
+{
 
     if( DebugModeFlag ) { return Point; }
 
     return {
-        clamp( Point.x, Cabine[ iCabn ].CabPos1.x, Cabine[ iCabn ].CabPos2.x ),
-        clamp( Point.y, Cabine[ iCabn ].CabPos1.y + 0.5, Cabine[ iCabn ].CabPos2.y + 1.8 ),
-        clamp( Point.z, Cabine[ iCabn ].CabPos1.z, Cabine[ iCabn ].CabPos2.z ) };
+        clamp( Point.x, (double)Cabine[ iCabn ].CabPos1.x, (double)Cabine[ iCabn ].CabPos2.x ),
+        clamp( Point.y, (double)Cabine[ iCabn ].CabPos1.y + 0.5, (double)Cabine[ iCabn ].CabPos2.y + 1.8 ),
+        clamp( Point.z, (double)Cabine[ iCabn ].CabPos1.z, (double)Cabine[ iCabn ].CabPos2.z ) };
 }
 
 const TTrain::screenentry_sequence& TTrain::get_screens() {
@@ -9745,7 +9743,7 @@ TTrain::radio_message( sound_source *Message, int const Channel ) {
 
     auto const soundrange { Message->range() };
     if( ( soundrange > 0 )
-     && ( glm::length2( Message->location() - glm::dvec3 { DynamicObject->GetPosition() } ) > ( soundrange * soundrange ) ) ) {
+     && ( glm::length2( Message->location() - glm::dvec3 { DynamicObject->GetPosition() } ) > sq(soundrange) ) ) {
         // skip message playback if the receiver is outside of the emitter's range
         return;
     }

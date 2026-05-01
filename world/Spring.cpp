@@ -17,15 +17,14 @@ void TSpring::Init(double nKs, double nKd) {
     kd = Kd;
 }
 
-Math3D::vector3 TSpring::ComputateForces( Math3D::vector3 const &pPosition1, Math3D::vector3 const &pPosition2) {
-
-    Math3D::vector3 springForce;
+glm::dvec3 TSpring::ComputateForces(glm::dvec3 const &pPosition1, glm::dvec3 const &pPosition2) {
+	glm::vec3 springForce;
     //		p1 = &system[spring->p1];
     //		p2 = &system[spring->p2];
     //		VectorDifference(&p1->pos,&p2->pos,&deltaP);	// Vector distance
     auto deltaP = pPosition1 - pPosition2;
     //		dist = VectorLength(&deltaP);					// Magnitude of deltaP
-    auto dist = deltaP.Length();
+	auto dist = glm::length(deltaP);
     if( dist > restLen ) {
 
         //		Hterm = (dist - spring->restLen) * spring->Ks;	// Ks * (dist - rest)
@@ -35,7 +34,7 @@ Math3D::vector3 TSpring::ComputateForces( Math3D::vector3 const &pPosition1, Mat
         auto deltaV = pPosition1 - pPosition2;
 
         //		Dterm = (DotProduct(&deltaV,&deltaP) * spring->Kd) / dist; // Damping Term
-        auto Dterm = (DotProduct(deltaV,deltaP) * Kd) / dist;
+        auto Dterm = (glm::dot(deltaV,deltaP) * Kd) / dist;
         //Dterm = 0;
 
         //		ScaleVector(&deltaP,1.0f / dist, &springForce);	// Normalize Distance Vector

@@ -39,8 +39,8 @@ public:
     TGauge &Gauge( int n = -1 ); // pobranie adresu obiektu
     TButton &Button( int n = -1 ); // pobranie adresu obiektu
 // members
-    Math3D::vector3 CabPos1 { 0, 1, 1 };
-    Math3D::vector3 CabPos2 { 0, 1, -1 };
+	glm::vec3 CabPos1{0, 1, 1};
+	glm::vec3 CabPos2{0, 1, -1};
     bool bEnabled { false };
     bool bOccupied { true };
 /*
@@ -153,11 +153,11 @@ class TTrain {
     // McZapkie-010302
     bool Init(TDynamicObject *NewDynamicObject, bool e3d = false);
 
-    inline
-    Math3D::vector3 GetDirection() const {
+    inline glm::dvec3 GetDirection() const
+	{
         return DynamicObject->VectorFront(); };
-    inline
-    Math3D::vector3 GetUp() const {
+    inline glm::dvec3 GetUp() const
+	{
         return DynamicObject->VectorUp(); };
     inline
     std::string GetLabel( TSubModel const *Control ) const {
@@ -849,9 +849,9 @@ public: // reszta może by?publiczna
     int iCabn { 0 }; // 0: mid, 1: front, 2: rear
     bool is_cab_initialized { false };
     // McZapkie: do poruszania sie po kabinie
-    Math3D::vector3 pMechSittingPosition; // ABu 180404
-    Math3D::vector3 MirrorPosition( bool lewe );
-    Math3D::vector3 pMechOffset; // base position of the driver in the cab
+	glm::dvec3 pMechSittingPosition; // ABu 180404
+	glm::dvec3 MirrorPosition(bool lewe);
+	glm::dvec3 pMechOffset; // base position of the driver in the cab
     glm::vec2 pMechViewAngle { 0.0, 0.0 }; // camera pitch and yaw values, preserved while in external view
 
 private:
@@ -929,8 +929,8 @@ private:
     void DynamicSet(TDynamicObject *d);
     void MoveToVehicle( TDynamicObject *target );
     // checks whether specified point is within boundaries of the active cab
-    bool point_inside( Math3D::vector3 const Point ) const;
-    Math3D::vector3 clamp_inside( Math3D::vector3 const &Point ) const;
+	bool point_inside(glm::dvec3 const Point) const;
+	glm::dvec3 clamp_inside(glm::dvec3 const &Point) const;
     const screenentry_sequence & get_screens();
 
 	uint16_t id();

@@ -29,9 +29,9 @@ class opengl33_renderer;
 
 namespace scene {
 
-int const EU07_CELLSIZE = 250;
-int const EU07_SECTIONSIZE = 1000;
-int const EU07_REGIONSIDESECTIONCOUNT = 500; // number of sections along a side of square region
+int constexpr EU07_CELLSIZE = 250;
+int constexpr EU07_SECTIONSIZE = 1000;
+int constexpr EU07_REGIONSIDESECTIONCOUNT = 500; // number of sections along a side of square region
 
 struct scratch_data {
 
@@ -428,7 +428,7 @@ public:
 
 //private:
 // types
-    using section_array = std::array<basic_section *, EU07_REGIONSIDESECTIONCOUNT * EU07_REGIONSIDESECTIONCOUNT>;
+    using section_array = std::array<basic_section *, sq(EU07_REGIONSIDESECTIONCOUNT)>;
 
     struct region_scratchpad {
 

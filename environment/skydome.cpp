@@ -47,7 +47,7 @@ float CSkyDome::m_zenithymatrix[ 3 ][ 4 ] = {
 CSkyDome::CSkyDome (int const Tesselation) :
                m_tesselation( Tesselation ) {
 
-//	SetSunPosition( Math3D::vector3(75.0f, 0.0f, 0.0f) );
+//	SetSunPosition( glm::vec3(75.0f, 0.0f, 0.0f) );
 	SetTurbidity( Global.fTurbidity );
 	SetExposure( true, 10.0f );
     SetOvercastFactor( 0.05f );
